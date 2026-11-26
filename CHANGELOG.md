@@ -4,6 +4,7 @@
 
 ## 未リリース
 
+- 資料フォルダの Word（.docx）と PDF を読むようにした。文字のない PDF は読めないことを示す。Office の「~$」で始まる一時ファイルは読まない（SC-21）。
 - 受け入れ条件（`docs/spec/acceptance.md`、SC-20）。L2 のケースに場面の ID と、ケースごとの合格の基準（`min_pass`）を付けた。
 - 開発の基盤：GitHub の非公開リポジトリ、版の番号を1か所で管理（`bun run version:set`）、CI（テスト、配布物のビルド、プラグインの検証）、L2 の評価の仕組み（`eval/behavior`）、L3 の手順（`docs/verification/desktop-checklist.md`）。
 - 版の番号を1つにそろえた。プラグインは 0.3.3 から、拡張機能・サーバーと同じ 0.3.6 になった（中身の変更はない）。
