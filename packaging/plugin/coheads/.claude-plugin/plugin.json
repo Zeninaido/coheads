@@ -1,0 +1,8 @@
+{
+  "name": "coheads",
+  "displayName": "Coheads",
+  "version": "0.3.3",
+  "description": "チームの「いま有効な決定」を、取引先あての見積・提案・メールを書く前にAIへ渡します。古い価格や未確定の事項を、現行として書かせません。データはCoheadsのデスクトップ拡張機能（このパソコンの中）から取ります。",
+  "author": { "name": "WalkOn（株式会社銭内堂）" },
+  "license": "Apache-2.0"
+}

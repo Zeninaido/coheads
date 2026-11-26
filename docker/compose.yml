@@ -1,0 +1,8 @@
+services:
+  db:
+    build: .
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: trust
+      POSTGRES_DB: sbcore
+    ports:
+      - "5433:5432"

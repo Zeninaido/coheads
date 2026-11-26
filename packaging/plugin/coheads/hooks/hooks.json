@@ -1,0 +1,12 @@
+{
+  "description": "依頼に登録済みの取引先・別名・担当者の名前が出てきたら、Coheads（このパソコンで動いている拡張機能）から決定を取り出して、AIが読む前に依頼に添える。Claude Code と Cowork で動く。",
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          { "type": "http", "url": "http://127.0.0.1:4319/hook/prompt", "timeout": 5 }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,14 @@
+[
+  {"id": "q01", "query": "A社の提案価格はいくら？", "category": "自然文", "primary": "2026-11-24-a-price-approval", "relevant": ["2026-11-24-a-price-approval", "2026-10-28-a-proposal-v1"]},
+  {"id": "q02", "query": "提案価格", "category": "単語", "primary": "2026-11-24-a-price-approval", "relevant": ["2026-11-24-a-price-approval", "2026-10-28-a-proposal-v1", "2026-11-18-a-weekly"]},
+  {"id": "q03", "query": "120,000円", "category": "数値", "primary": "2026-11-24-a-price-approval", "relevant": ["2026-11-24-a-price-approval"]},
+  {"id": "q04", "query": "12万円", "category": "表記ゆれ", "primary": "2026-11-24-a-price-approval", "relevant": ["2026-11-24-a-price-approval", "2026-11-18-a-weekly"]},
+  {"id": "q05", "query": "エー社の導入時期は決まった？", "category": "別名＋自然文", "primary": "2026-11-25-a-hearing", "relevant": ["2026-11-25-a-hearing"]},
+  {"id": "q06", "query": "A社の納期", "category": "言い換え", "primary": "2026-11-25-a-hearing", "relevant": ["2026-11-25-a-hearing", "2026-10-20-a-kickoff"]},
+  {"id": "q07", "query": "価格改定を承認したのは誰", "category": "自然文", "primary": "2026-11-24-a-price-approval", "relevant": ["2026-11-24-a-price-approval"]},
+  {"id": "q08", "query": "値上げ", "category": "単語", "primary": "2026-11-18-a-weekly", "relevant": ["2026-11-18-a-weekly"]},
+  {"id": "q09", "query": "株式会社エー 担当者", "category": "空白区切り", "primary": "2026-11-25-a-hearing", "relevant": ["2026-11-25-a-hearing"]},
+  {"id": "q10", "query": "月額料金", "category": "言い換え", "primary": "2026-11-24-a-price-approval", "relevant": ["2026-11-24-a-price-approval", "2026-10-28-a-proposal-v1"]},
+  {"id": "q11", "query": "キックオフ", "category": "単語", "primary": "2026-10-20-a-kickoff", "relevant": ["2026-10-20-a-kickoff"]},
+  {"id": "q12", "query": "B社の見積額", "category": "自然文", "primary": "2026-11-10-b-estimate", "relevant": ["2026-11-10-b-estimate", "2026-11-20-b-minutes"]}
+]

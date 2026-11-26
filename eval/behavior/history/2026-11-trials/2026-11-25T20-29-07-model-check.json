@@ -1,0 +1,64 @@
+{
+  "label": "model-check",
+  "decoys": false,
+  "names": true,
+  "user": "suzuki",
+  "n": 1,
+  "runs": [
+    {
+      "id": "p2",
+      "run": 1,
+      "servers": {
+        "shared-second-brain": "connected"
+      },
+      "tools": [
+        "ToolSearch",
+        "get_context"
+      ],
+      "calledContext": true,
+      "firstTool": "get_context",
+      "answer": "A社の提案価格は**月額120,000円（税別）**で確定しています。2026-11-24から適用です。\n\n- 以前の月額100,000円（10/20のキックオフで決めた方針）は、11/24で無効になっています。\n- 11/18の定例会議では「12万円に上げたい」という意見が出ただけで、そのときは決まりませんでした。その後11/24に正式に承認されています。\n- 納期はまだ決まっていません。先方の稼働日程が決まるのを待っている状態です。\n\n出典：A社案件（2026-11-24承認記録）",
+      "calls": [
+        {
+          "name": "ToolSearch",
+          "input": {
+            "query": "select:mcp__shared-second-brain__get_context,mcp__shared-second-brain__get_document",
+            "max_results": 2
+          }
+        },
+        {
+          "name": "get_context",
+          "input": {
+            "request": "A社の提案価格っていくらで確定してたっけ？"
+          }
+        }
+      ],
+      "model": "claude-opus-5-5",
+      "costUsd": 0.1005886,
+      "inputTokens": 8,
+      "outputTokens": 376,
+      "modelUsage": {
+        "claude-opus-5-5": {
+          "inputTokens": 8,
+          "outputTokens": 376,
+          "cacheReadInputTokens": 34503,
+          "cacheCreationInputTokens": 10767,
+          "webSearchRequests": 0,
+          "costUSD": 0.1005886,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 0,
+          "cacheCreationEphemeral5mInputTokens": 0,
+          "cacheCreationEphemeral1hInputTokens": 10767,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+        }
+      },
+      "contextProjects": [
+        "a-sha"
+      ],
+      "firstContextProject": "a-sha"
+    }
+  ]
+}

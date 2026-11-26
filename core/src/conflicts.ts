@@ -1,0 +1,103 @@
+// When the ledger has no approved amount yet, documents may still disagree (an old proposal at 100,000円, a later
+// approval memo at 120,000円). Point that out, with each document's date and what it says about the amount, so the AI
+// does not pick one silently. This works from day one, before anyone has recorded a decision.
+import type { Db } from './db';
+import { moneyAmounts, normalize } from './normalize';
+import { CLASSIFICATION_ORDER, type Classification } from './types';
+
+export type MentionSignal = 'decided' | 'undecided' | 'old';
+export interface MoneyMention { amount: number; docId: string; title: string; updatedAt: string; line: string; signal?: MentionSignal }
+export interface MoneyConflict {
+  label: string; // what the amounts are about (v0: prices and quotes)
+  values: { amount: number; mentions: MoneyMention[] }[];
+  latest: MoneyMention; // the newest document that states an amount
+  /** When the newest statement says the amount was decided, a ready-made candidate the user can record with one yes. */
+  draft?: CandidateDraft;
+}
+export interface CandidateDraft {
+  projectId: string;
+  label: string;
+  amount: number;
+  period?: 'monthly' | 'yearly' | 'one_time';
+  tax?: 'excluded' | 'included';
+  validFrom?: string; // YYYY-MM-DD
+  sourceDocId: string; // doc:...
+  sourceTitle: string;
+  approverInDoc?: string; // what the document says about who approved; a record, not an approval
+}
+
+const PRICE = /価格|料金|見積|月額|年額|費用|単価|プラン|金額/;
+// Order matters: "承認が必要" is undecided even though it contains 承認.
+const UNDECIDED = /未承認|承認が必要|承認待ち|結論を出していない|結論は出て|保留|検討中|意見|案が出|候補|仮/;
+const OLD = /旧|以前|従来|改定前|変更前/;
+const DECIDED = /承認|決定|確定|改定する|合意/;
+
+function signalOf(line: string): MentionSignal | undefined {
+  if (UNDECIDED.test(line)) return 'undecided';
+  if (OLD.test(line)) return 'old';
+  if (DECIDED.test(line)) return 'decided';
+  return undefined;
+}
+
+/** Amount mentions in a document: lines that state a yen amount and talk about a price (or sit under a price heading). */
+export function moneyMentions(doc: { id: string; title: string; updated_at: string; body: string }, aliases: Record<string, string>): MoneyMention[] {
+  const lines = doc.body.split('\n');
+  const out: MoneyMention[] = [];
+  lines.forEach((raw, i) => {
+    const line = raw.trim();
+    const amounts = moneyAmounts(normalize(line, aliases));
+    if (!amounts.length) return;
+    if (!PRICE.test(line) && !PRICE.test(lines[i - 1] ?? '')) return;
+    for (const amount of amounts) {
+      out.push({ amount, docId: `doc:${doc.id}`, title: doc.title, updatedAt: new Date(doc.updated_at).toISOString().slice(0, 10), line: line.replace(/^[-#*\s]+/, ''), signal: signalOf(line) });
+    }
+  });
+  return out;
+}
+
+/** Disagreeing amounts across a project's documents (within the destination's ceiling). Undefined when they agree. */
+export async function findMoneyConflict(db: Db, projectId: string, ceiling: Classification, aliases: Record<string, string>): Promise<MoneyConflict | undefined> {
+  const allowed = CLASSIFICATION_ORDER.slice(0, CLASSIFICATION_ORDER.indexOf(ceiling) + 1);
+  const docs = await db.query<{ id: string; title: string; updated_at: string; body: string }>(
+    `select id, title, updated_at, body from documents where project_id = $1 and classification = any($2::text[]) order by updated_at desc limit 500`,
+    [projectId, allowed]);
+  const mentions = docs.flatMap(d => moneyMentions(d, aliases));
+  const byAmount = new Map<number, MoneyMention[]>();
+  for (const m of mentions) byAmount.set(m.amount, [...(byAmount.get(m.amount) ?? []), m]);
+  if (byAmount.size < 2) return undefined;
+  const latestOf = (ms: MoneyMention[]) => ms.reduce((a, b) => (b.updatedAt > a.updatedAt ? b : a));
+  const values = [...byAmount.entries()]
+    .map(([amount, ms]) => ({ amount, mentions: ms.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)) }))
+    .sort((a, b) => latestOf(b.mentions).updatedAt.localeCompare(latestOf(a.mentions).updatedAt));
+  // The newest statement, preferring one that is not about an old value.
+  const fresh = mentions.filter(m => m.signal !== 'old');
+  const latest = latestOf(fresh.length ? fresh : mentions);
+  const source = latest.signal === 'decided' ? docs.find(d => `doc:${d.id}` === latest.docId) : undefined;
+  return { label: '金額（価格・見積）', values, latest, draft: source ? candidateDraft(projectId, latest, source.body) : undefined };
+}
+
+const pad = (n: string) => n.padStart(2, '0');
+/** Fields for a candidate, read from the deciding line and the rest of its document. Missing fields stay empty. */
+export function candidateDraft(projectId: string, m: MoneyMention, body: string): CandidateDraft {
+  const ctx = `${m.line}\n${body}`;
+  const period = /月額|月々|毎月/.test(m.line) ? 'monthly' : /年額|年間/.test(m.line) ? 'yearly' : /一括|初期費用|一時/.test(m.line) ? 'one_time' : undefined;
+  const tax = /税別|税抜|外税/.test(m.line) ? 'excluded' : /税込|内税/.test(m.line) ? 'included' : undefined;
+  const d = ctx.match(/(?:適用日|適用開始|開始日)[^\d\n]*(\d{4})[年\/-](\d{1,2})[月\/-](\d{1,2})/);
+  const approver = body.match(/承認者\s*[:：]\s*(.+)/)?.[1]?.trim();
+  return {
+    projectId,
+    label: /提案価格/.test(m.line) ? '提案価格' : '価格',
+    amount: m.amount,
+    period, tax,
+    validFrom: d ? `${d[1]}-${pad(d[2])}-${pad(d[3])}` : undefined,
+    sourceDocId: m.docId,
+    sourceTitle: m.title,
+    approverInDoc: approver,
+  };
+}
+
+const SIGNAL_TEXT: Record<MentionSignal, string> = { decided: '決定・承認と書かれている', undecided: '未決・案と書かれている', old: '旧い値として書かれている' };
+export const signalText = (s: MentionSignal) => SIGNAL_TEXT[s];
+export function describeMention(m: MoneyMention): string {
+  return `${m.updatedAt}の「${m.title}」${m.signal ? `（${SIGNAL_TEXT[m.signal]}）` : ''}`;
+}
