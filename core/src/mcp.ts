@@ -10,9 +10,9 @@ import { excerpt, renderCopyText, renderDocumentText } from './renderers/copyTex
 import { allowedProjectIds, nameableProjects } from './permissions';
 import { appendFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
-import { DATA_DIR, DEMO_USER, FOLDER, folderProjectIds, LOCAL_USER, MODE, withStore } from './runtime';
+import { DATA_DIR, DEMO_USER, FOLDER, folderProjectIds, LOCAL_USER, MODE, newerVersionSeen, withStore } from './runtime';
 import { APPROVAL_URL, startApprovalPage } from './approvalPage';
-import { recordAndApply } from './sharedLedger';
+import { NEWER_VERSION_CAUTION, recordAndApply } from './sharedLedger';
 import { randomUUID } from 'node:crypto';
 
 // Anything that kills the server is written to stderr and to .data/mcp-error.log, so a client's
@@ -129,6 +129,7 @@ if (!PLAIN) server.registerTool(
           documents: pack.documents.map(d => d.source.uri), open: pack.open.map(o => o.topicKey),
         },
       });
+      if (pack.project && newerVersionSeen()) pack.cautions.push(NEWER_VERSION_CAUTION);
       return renderCopyText(pack);
     });
     return { content: [{ type: 'text', text }] };

@@ -1,0 +1,15 @@
+id: newer-version-notice
+title: チームの誰かが新しい版を使っていて、読めない記録がある
+scene: S17 新しい版に更新する
+prompt: A社に送る見積のメールを書いて
+data: folder:a-sha-newer-version
+min_pass: 1
+expect:
+  context: required
+  project: A社
+  includes_any: ["130,000", "13万"]
+  excludes: ["Coheads", "台帳", "get_context", "propose_decision"]
+  judge:
+    - 見積の金額として月額130,000円（税別）を使っている
+    - 利用者に、拡張機能（またはアプリ）を新しい版に更新するよう伝えている
+    - 更新の話を、取引先あてのメールの本文には入れていない

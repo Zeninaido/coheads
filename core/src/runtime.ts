@@ -4,12 +4,13 @@
 // - folder (SB_FOLDER is set): the user's own folder. Each sub-folder is a project; the user is its member and approver.
 // - demo (no SB_FOLDER): the fictional A社 / B社 data used by the tests and the trials.
 import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, readdirSync, statSync } from 'node:fs';
-import { basename, join } from 'node:path';
+import { existsSync, mkdirSync, readdirSync, rmSync, statSync } from 'node:fs';
+import { homedir } from 'node:os';
+import { basename, join, parse, resolve } from 'node:path';
 import { connect, migrate, type Db } from './db';
 import { FolderAdapter } from './adapters/folder';
 import { grant } from './permissions';
-import { syncSharedLedger } from './sharedLedger';
+import { newerRecordCount, syncSharedLedger } from './sharedLedger';
 import { moduleDir } from './paths';
 import { CORPUS_DIR, seedBase, seedPriceHistory } from './seed';
 
@@ -19,7 +20,8 @@ const setting = (v?: string) => (v && v.trim() && !v.includes('${') ? v.trim() :
 export const FOLDER = setting(process.env.SB_FOLDER);
 export const MODE: 'folder' | 'demo' = FOLDER ? 'folder' : 'demo';
 
-const BASE_DATA_DIR = process.env.SB_DATA_DIR ?? join(moduleDir(import.meta), '..', '.data');
+/** Everything Coheads keeps on this computer (~/.coheads for the extension): one store per folder, plus the demo. */
+export const BASE_DATA_DIR = process.env.SB_DATA_DIR ?? join(moduleDir(import.meta), '..', '.data');
 // A separate store per folder, so switching folders (or demo ↔ folder) never mixes data.
 export const DATA_DIR = FOLDER
   ? join(BASE_DATA_DIR, 'folder-' + createHash('sha256').update(FOLDER).digest('hex').slice(0, 12))
@@ -39,6 +41,11 @@ function projectFolders(root: string): string[] {
   return readdirSync(root).filter(n => !n.startsWith('.') && !n.startsWith('_') && statSync(join(root, n)).isDirectory());
 }
 
+// Records in the shared folder that a newer version wrote and this one cannot read (updated on every open).
+let newerRecords = 0;
+/** True when someone on the team uses a newer version: the approval page and the AI are told to update. */
+export const newerVersionSeen = () => newerRecords > 0;
+
 async function syncFolderProjects(db: Db, root: string): Promise<FolderAdapter> {
   await db.query(`insert into workspaces values ('local', 'personal', $1) on conflict do nothing`, [basename(root)]);
   const map: Record<string, string> = {};
@@ -51,6 +58,7 @@ async function syncFolderProjects(db: Db, root: string): Promise<FolderAdapter> 
   const folder = new FolderAdapter(db, root, map, { prefixIds: true });
   await folder.ingest();
   await syncSharedLedger(db, root, Object.values(map), LOCAL_USER);
+  newerRecords = await newerRecordCount(db);
   return folder;
 }
 
@@ -92,4 +100,23 @@ async function openStore<T>(fn: (db: Db, folder: FolderAdapter) => Promise<T>): 
   } finally {
     await db.close();
   }
+}
+
+/**
+ * Delete everything Coheads keeps on this computer (the indexes, the record of what reached the AI, the demo data).
+ * Documents and the shared folder's records are not touched. Runs in the store queue, so no store is open meanwhile;
+ * if Coheads keeps running, the next request rebuilds the index from the folder.
+ */
+export function clearLocalData(): Promise<void> {
+  const run = queue.then(() => {
+    if (process.env.SB_DATABASE_URL) throw new Error('この環境のデータは、このパソコンの中にはありません。');
+    const dir = resolve(BASE_DATA_DIR);
+    // Never the home folder, a drive root or a shallow system path, whatever the setting says.
+    if (dir === resolve(homedir()) || dir === parse(dir).root || dir.split(/[\\/]/).filter(Boolean).length < 2) {
+      throw new Error(`消せない場所です：${dir}`);
+    }
+    rmSync(dir, { recursive: true, force: true });
+  });
+  queue = run.catch(() => undefined);
+  return run;
 }
