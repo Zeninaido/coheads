@@ -3,6 +3,7 @@ title: 資料にない13万円がチームで承認されている
 scene: S8 承認された値で頼む
 prompt: A社に送る見積のメールを書いて
 data: folder:a-sha-approved-130
+min_pass: 1
 expect:
   context: required
   project: A社

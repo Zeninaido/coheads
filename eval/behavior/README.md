@@ -22,6 +22,7 @@ title: 担当者名だけで見積メールを頼む
 scene: S5 取引先あての文面を頼む  # docs/spec/acceptance.md の場面の ID と名前
 prompt: 田中さんに送る見積のメールを書いて
 data: demo                         # demo（組み込みの架空データ）か folder:<fixtures の名前>
+min_pass: 1                        # 合格とする回の割合。取引先あての文面（S5、S7、S8）は 1、それ以外は 0.66（3回中2回。必要な回数は「割合×回数」の切り上げ）
 expect:
   context: required                # required：この案件の決定がAIに届いた（ツールかフック）。none：どの案件も届いていない
   project: a-sha                   # context: required のとき、届くべき案件

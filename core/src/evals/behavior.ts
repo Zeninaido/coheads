@@ -33,6 +33,8 @@ export interface Case {
   prompt: string;
   /** demo: the built-in fictional data (current price 120,000円). folder:<name>: eval/behavior/fixtures/<name>. */
   data: string;
+  /** Share of runs that must pass, for this case (overrides the suite's min_pass). 1 = every run. */
+  min_pass?: number;
   expect: {
     /** required: the AI got this project's decisions (tool call or hook). none: no project's decisions reached it. */
     context?: 'required' | 'none' | 'any';
@@ -83,6 +85,7 @@ export function validate(cases: Case[], suites: Suite[]): string[] {
     const e = c.expect ?? {};
     if (e.context && !['required', 'none', 'any'].includes(e.context)) errs.push(`${at}: expect.context must be required, none or any`);
     if (!e.context && !e.calls && !e.includes_any && !e.excludes && !e.judge) errs.push(`${at}: expect has no checks`);
+    if (c.min_pass !== undefined && !(c.min_pass > 0 && c.min_pass <= 1)) errs.push(`${at}: min_pass must be more than 0 and at most 1`);
   }
   for (const s of suites) {
     const at = `suite ${s.id}`;
@@ -295,15 +298,15 @@ if (import.meta.main) {
   }
 
   // Table: pass count per case and condition.
-  const need = (total: number) => Math.ceil((suite.min_pass ?? 1) * total);
+  const need = (c: Case, total: number) => Math.ceil((c.min_pass ?? suite.min_pass ?? 1) * total);
   const rows: string[] = [`| case | ${conditions.map(k => k.id).join(' | ')} |`, `| --- | ${conditions.map(() => '---').join(' | ')} |`];
   let ok = true;
   for (const c of picked) {
     const cells = conditions.map(k => {
       const rs = results.filter(r => r.case === c.id && r.condition === k.id);
       const p = rs.filter(r => r.pass).length;
-      if (p < need(rs.length)) ok = false;
-      return `${p}/${rs.length}`;
+      if (p < need(c, rs.length)) ok = false;
+      return `${p}/${rs.length}${p < need(c, rs.length) ? ' ✗' : ''}`;
     });
     rows.push(`| ${c.id} | ${cells.join(' | ')} |`);
   }
@@ -318,7 +321,7 @@ if (import.meta.main) {
     `モデル：${models || '不明'}／実行回数：${runs}／費用（Claude Codeの報告値、API料金換算）：$${cost.toFixed(3)}`, '',
     ...conditions.map(k => `- ${k.id}：${k.description ?? ''}（server=${k.server ?? 'coheads'}, plugin=${k.plugin ?? 'none'}, decoys=${k.decoys ?? 'realistic'}）`), '',
     ...rows, '',
-    `判定：${ok ? '合格' : '不合格'}（各セルで ${Math.round((suite.min_pass ?? 1) * 100)}% 以上の回が合格）`, '',
+    `判定：${ok ? '合格' : '不合格'}（各セルで、ケースの min_pass（なければスイートの ${Math.round((suite.min_pass ?? 1) * 100)}%）以上の回が合格。✗ は基準に届かなかったセル）`, '',
     '## 不合格の回', '',
     ...results.filter(r => !r.pass).map(r => `- ${r.condition} / ${r.case} #${r.run}：${r.error ?? r.checks.filter(x => !x.pass).map(x => `${x.check}${x.detail ? `（${x.detail}）` : ''}`).join('；')}`),
   ].join('\n');

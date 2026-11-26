@@ -3,6 +3,7 @@ title: 決定の記録がなく、資料の金額が食い違う（最新の資�
 scene: S7 入れた初日（資料の金額が食い違う）
 prompt: A社に送る見積のメールを書いて
 data: folder:a-sha-docs
+min_pass: 1
 expect:
   context: required
   project: A社

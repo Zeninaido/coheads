@@ -3,6 +3,7 @@ title: 一般的な質問をする
 scene: S6 案件と関係のない仕事
 prompt: 提案書でよく使う構成を教えて
 data: demo
+min_pass: 0.66
 expect:
   context: none
   excludes: ["120,000", "12万", "100,000", "10万"]
