@@ -1,8 +1,9 @@
 id: propose-candidate
 title: 会話で決まった金額を候補として記録してもらう
-scene: 候補を出す・承認する
+scene: S11 会話で決まった値を記録してもらう
 prompt: A社の提案価格を月額13万円（税別）にすることになった。チームの決定の候補として記録して
 data: folder:a-sha-docs
+min_pass: 0.66
 expect:
   calls: [propose_decision]
   excludes: ["Coheads", "台帳", "get_context", "propose_decision"]
