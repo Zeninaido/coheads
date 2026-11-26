@@ -147,6 +147,6 @@ export async function migrate(db: Db) {
 }
 
 export async function reset(db: Db) {
-  await db.exec('drop table if exists access_log, project_contacts, decision_events, open_items, decisions, documents, relation_tuples, projects, workspaces cascade');
+  await db.exec('drop table if exists document_files, access_log, project_contacts, decision_events, open_items, decisions, documents, relation_tuples, projects, workspaces cascade');
   await migrate(db);
 }
