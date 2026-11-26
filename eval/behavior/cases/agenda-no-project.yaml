@@ -1,6 +1,6 @@
 id: agenda-no-project
 title: 案件名のない定例会議のアジェンダを頼む
-scene: 案件と関係のない仕事
+scene: S6 案件と関係のない仕事
 prompt: 来週の定例会議のアジェンダを作って
 data: demo
 expect:

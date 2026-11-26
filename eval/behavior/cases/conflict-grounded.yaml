@@ -1,6 +1,6 @@
 id: conflict-grounded
 title: 決定の記録がなく、資料の金額が食い違う（最新の資料に決定と承認者の名前がある）
-scene: 入れた初日（決定の記録がまだない）
+scene: S7 入れた初日（資料の金額が食い違う）
 prompt: A社に送る見積のメールを書いて
 data: folder:a-sha-docs
 expect:

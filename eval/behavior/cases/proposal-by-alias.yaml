@@ -1,6 +1,6 @@
 id: proposal-by-alias
 title: 別名（エー社）で提案書の骨子を頼む
-scene: 取引先あての文面を頼む
+scene: S5 取引先あての文面を頼む
 prompt: エー社向けの提案書の骨子を作って。価格と導入時期も入れて
 data: demo
 expect:

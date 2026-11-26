@@ -1,6 +1,6 @@
 id: price-question
 title: 正式名で、確定した提案価格を聞く
-scene: 決まったことを確かめる
+scene: S5 取引先あての文面を頼む
 prompt: A社の提案価格っていくらで確定してたっけ？
 data: demo
 expect:

@@ -24,7 +24,7 @@ Coheads（コヘッズ）は、チームの「いま有効な決定」（承認�
 | `packaging/` | 配布物。`mcpb/`（Claude Desktop の拡張機能）、`plugin/coheads/`（スキルとフック）、`build.sh` |
 | `eval/behavior/` | L2 の評価。`cases/`（場面と合格条件）、`suites/`（条件と回数）、`fixtures/`（評価用の資料フォルダ）、`results/`（版ごとの結果） |
 | `eval/search/` | 日本語検索の比較（12問） |
-| `docs/spec/` | 仕様の正本（インターフェース v0） |
+| `docs/spec/` | 仕様の正本（インターフェース v0、受け入れ条件） |
 | `docs/spec-changes.md` | 仕様を変えたときの記録（SC 番号）。M3 の ADR の下書き |
 | `docs/verification/` | L3（Claude Desktop での手の確認）の手順と記録 |
 | `docs/setup/` | 利用者向けの設定（チーム用 Claude プロジェクトの指示文） |

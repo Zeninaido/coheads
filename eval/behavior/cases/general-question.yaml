@@ -1,6 +1,6 @@
 id: general-question
 title: 一般的な質問をする
-scene: 案件と関係のない仕事
+scene: S6 案件と関係のない仕事
 prompt: 提案書でよく使う構成を教えて
 data: demo
 expect:

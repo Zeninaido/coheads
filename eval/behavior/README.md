@@ -19,7 +19,7 @@ AI が場面ごとに正しく動くかを、条件を固定し、同じ依頼�
 ```yaml
 id: quote-by-contact              # ファイル名と同じにする
 title: 担当者名だけで見積メールを頼む
-scene: 取引先あての文面を頼む       # どの場面の確認か（受け入れ条件の場面と対応させる）
+scene: S5 取引先あての文面を頼む  # docs/spec/acceptance.md の場面の ID と名前
 prompt: 田中さんに送る見積のメールを書いて
 data: demo                         # demo（組み込みの架空データ）か folder:<fixtures の名前>
 expect:
