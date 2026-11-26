@@ -39,8 +39,8 @@ bun run test                    # L1：自動テスト（core/ で bun test）
 bun run build                   # 配布物を dist/ に作る（coheads.mcpb、coheads-plugin.zip）
 bun run version:check           # 版の番号がすべてのファイルでそろっているか
 bun run version:set 0.4.0       # 版を上げる（ルートの package.json が正本）
-bun run eval --dry             # L2 のケースとスイートの検査（費用なし）
-bun run eval --suite smoke   # L2 を回す（Claude Code のログインが要る。費用は利用枠から）
+bun run eval --dry              # L2 のケースとスイートの検査（費用なし）
+bun run eval --suite smoke      # L2 を回す（Claude Code のログインが要る。費用は利用枠から）
 ```
 
 ## 変更の流れ
