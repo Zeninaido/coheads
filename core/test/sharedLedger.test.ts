@@ -7,7 +7,7 @@ import { connect, migrate, reset, type Db } from '../src/db';
 import { buildContextPack } from '../src/contextPack';
 import { FolderAdapter } from '../src/adapters/folder';
 import { grant } from '../src/permissions';
-import { recordAndApply, syncSharedLedger, teamState, writeEvent } from '../src/sharedLedger';
+import { newerRecordCount, recordAndApply, syncSharedLedger, teamState, writeEvent } from '../src/sharedLedger';
 
 if (process.env.SB_ENGINE === 'postgres') test.skip('shared ledger runs on PGLite only (two local stores)', () => {});
 else {
@@ -125,20 +125,24 @@ describe('approvers set on the approval page (recorded as events)', () => {
   });
   afterAll(async () => { await a.db.close(); await b.db.close(); });
 
-  test('while nobody is listed, any member may name the first approver; then only listed people may approve', async () => {
+  test('whoever names the first approver is listed too, so nobody locks themselves out', async () => {
     expect((await teamState(b.db, team)).approvers).toEqual([]);
     await recordAndApply(b.db, team, add('鈴木', '佐藤', '2026-12-01T00:00:00.000Z'), PROJECTS);
+    expect(events()).toHaveLength(1); // one change, one file
+    await a.sync();
+    expect((await teamState(a.db, team)).approvers).toEqual(['鈴木', '佐藤']);
+  });
+
+  test('a listed person may step down; then only listed people may approve or change the list', async () => {
+    await recordAndApply(b.db, team, removed('鈴木', '鈴木', '2026-12-01T00:10:00.000Z'), PROJECTS);
     await recordAndApply(b.db, team, { v: 1, type: 'proposed', at: '2026-12-01T01:00:00.000Z', by: '鈴木', decisionId: 't-1',
       projectId: 'A社', topicKey: 'proposal.price', label: '提案価格', value: money(100000), validFrom: '2026-12-01', sources: [] }, PROJECTS);
     await expect(recordAndApply(b.db, team, { v: 1, type: 'approved', at: '2026-12-01T02:00:00.000Z', by: '鈴木', decisionId: 't-1' }, PROJECTS)).rejects.toThrow('not an approver');
-    await a.sync();
-    expect((await teamState(a.db, team)).approvers).toEqual(['佐藤']);
-  });
-
-  test('someone not listed cannot change the list; nothing is written', async () => {
     const before = events().length;
     await expect(recordAndApply(b.db, team, add('鈴木', '鈴木', '2026-12-01T03:00:00.000Z'), PROJECTS)).rejects.toThrow('not an approver');
     expect(events().length).toBe(before);
+    await a.sync();
+    expect((await teamState(a.db, team)).approvers).toEqual(['佐藤']);
   });
 
   test('an approver adds a member, who approves; a later removal does not undo that approval on any machine', async () => {
@@ -156,7 +160,8 @@ describe('approvers set on the approval page (recorded as events)', () => {
       expect(await current(m.db, m.folder, who)).toEqual([100000]);
       const st = await teamState(m.db, team);
       expect(st.approvers).toEqual(['佐藤']);
-      expect(st.changes.map(c => `${c.by}:${c.kind}:${c.who}`)).toEqual(['鈴木:approver_added:佐藤', '佐藤:approver_added:鈴木', '佐藤:approver_removed:鈴木']);
+      expect(st.changes.map(c => `${c.by}:${c.kind}:${c.who}`)).toEqual([
+        '鈴木:approver_added:鈴木', '鈴木:approver_added:佐藤', '鈴木:approver_removed:鈴木', '佐藤:approver_added:鈴木', '佐藤:approver_removed:鈴木']);
     }
   });
 
@@ -170,6 +175,19 @@ describe('approvers set on the approval page (recorded as events)', () => {
     expect((await teamState(b.db, team)).approvers).toEqual([]);
     await recordAndApply(b.db, team, { v: 1, type: 'approved', at: '2026-12-04T03:00:00.000Z', by: '鈴木', decisionId: 't-2' }, PROJECTS);
     expect(await current(b.db, b.folder, '鈴木')).toEqual([110000]);
+  });
+
+  test('a record from a newer version is skipped and counted; everything else still applies', async () => {
+    writeFileSync(join(team, '.coheads', 'events', '2026-12-05T00-00-00-000Z-future01.json'),
+      JSON.stringify({ v: 1, type: 'expired', at: '2026-12-05T00:00:00.000Z', by: '佐藤', decisionId: 't-2' }));
+    await recordAndApply(a.db, team, { v: 1, type: 'proposed', at: '2026-12-06T00:00:00.000Z', by: '佐藤', decisionId: 't-3',
+      projectId: 'A社', topicKey: 'topic.memo', label: 'メモ', value: { type: 'text', text: '新しい版のあとの候補' }, sources: [] }, PROJECTS);
+    expect(await newerRecordCount(a.db)).toBe(0);
+    const r = await b.sync();
+    expect(r.refused.map(x => x.reason)).toEqual(['newer version: expired']);
+    expect(await newerRecordCount(b.db)).toBe(1);
+    const [{ n }] = await b.db.query<{ n: number }>(`select count(*)::int as n from decisions where id = 't-3'`);
+    expect(n).toBe(1);
   });
 });
 }

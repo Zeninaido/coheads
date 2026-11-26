@@ -10,7 +10,7 @@ import { basename, join, parse, resolve } from 'node:path';
 import { connect, migrate, type Db } from './db';
 import { FolderAdapter } from './adapters/folder';
 import { grant } from './permissions';
-import { syncSharedLedger } from './sharedLedger';
+import { newerRecordCount, syncSharedLedger } from './sharedLedger';
 import { moduleDir } from './paths';
 import { CORPUS_DIR, seedBase, seedPriceHistory } from './seed';
 
@@ -41,6 +41,11 @@ function projectFolders(root: string): string[] {
   return readdirSync(root).filter(n => !n.startsWith('.') && !n.startsWith('_') && statSync(join(root, n)).isDirectory());
 }
 
+// Records in the shared folder that a newer version wrote and this one cannot read (updated on every open).
+let newerRecords = 0;
+/** True when someone on the team uses a newer version: the approval page and the AI are told to update. */
+export const newerVersionSeen = () => newerRecords > 0;
+
 async function syncFolderProjects(db: Db, root: string): Promise<FolderAdapter> {
   await db.query(`insert into workspaces values ('local', 'personal', $1) on conflict do nothing`, [basename(root)]);
   const map: Record<string, string> = {};
@@ -53,6 +58,7 @@ async function syncFolderProjects(db: Db, root: string): Promise<FolderAdapter> 
   const folder = new FolderAdapter(db, root, map, { prefixIds: true });
   await folder.ingest();
   await syncSharedLedger(db, root, Object.values(map), LOCAL_USER);
+  newerRecords = await newerRecordCount(db);
   return folder;
 }
 

@@ -13,8 +13,8 @@ import { renderCopyText } from './renderers/copyText';
 import type { Classification } from './types';
 import { allowedProjectIds, can } from './permissions';
 import { formatValue } from './normalize';
-import { BASE_DATA_DIR, clearLocalData, FOLDER, folderProjectIds, withStore } from './runtime';
-import { cleanName, recordAndApply, teamState } from './sharedLedger';
+import { BASE_DATA_DIR, clearLocalData, FOLDER, folderProjectIds, newerVersionSeen, withStore } from './runtime';
+import { cleanName, NEWER_VERSION_CAUTION, NEWER_VERSION_NOTICE, recordAndApply, teamState } from './sharedLedger';
 
 export const APPROVAL_PORT = Number(process.env.SB_APPROVAL_PORT ?? 4319);
 export const APPROVAL_URL = `http://127.0.0.1:${APPROVAL_PORT}/`;
@@ -68,6 +68,7 @@ ol li,ul.plain li{margin:4px 0}
 </style>
 <nav>${nav}</nav>
 <p class="m">あなた：${esc(user)}／${FOLDER ? `資料フォルダ：${esc(FOLDER)}` : 'デモ（架空の取引先 A社・B社）'}</p>
+${newerVersionSeen() ? `<p class="warn">${esc(NEWER_VERSION_NOTICE)}</p>` : ''}
 ${message ? `<p class="msg">${esc(message)}</p>` : ''}
 ${body}</html>`;
 }
@@ -116,9 +117,12 @@ async function decide(user: string, id: string, action: string): Promise<string>
 
 // ---- 承認する人 ----
 
-async function members(db: Db): Promise<string[]> {
-  return (await db.query<{ subject_id: string }>(
-    `select distinct subject_id from relation_tuples where relation = 'member' and resource_type = 'project' order by subject_id`)).map(r => r.subject_id);
+/** Names that appear in the team's records (who proposed, approved or set the list), plus this computer's name. */
+async function knownNames(db: Db, user: string, extra: string[]): Promise<string[]> {
+  const rows = await db.query<{ n: string }>(
+    `select subject_id as n from relation_tuples where relation = 'member' and resource_type = 'project'
+     union select by->>'id' from decision_events union select by from shared_approver_changes union select who from shared_approver_changes`);
+  return [...new Set([user, ...extra, ...rows.map(r => r.n)])].filter(Boolean).sort((a, b) => a.localeCompare(b, 'ja'));
 }
 
 async function teamView(user: string): Promise<string> {
@@ -129,19 +133,28 @@ async function teamView(user: string): Promise<string> {
 <p>デモで承認できる人：${esc(approvers.join('、'))}</p>
 <p class="note">デモでは変えられません。拡張機能の設定で資料フォルダを選ぶと、ここで承認する人を指定できます。</p>`;
   }
-  const { approvers, fromFile, changes, known } = await withStore(async db => ({ ...(await teamState(db, FOLDER!)), known: await members(db) }));
+  const { approvers, fromFile, changes, known } = await withStore(async db => {
+    const st = await teamState(db, FOLDER!);
+    return { ...st, known: await knownNames(db, user, st.fromFile) };
+  });
+  const choices = known.filter(n => !approvers.includes(n));
   const canEdit = !approvers.length || approvers.includes(user);
   const me = (n: string) => (n === user ? '（あなた）' : '');
   const list = approvers.length
     ? `<ul class="plain">${approvers.map(n => `<li>${esc(n)}${me(n)}${canEdit ? ` <form method="post" action="/team" style="display:inline">${tokenField}<input type="hidden" name="name" value="${esc(n)}"><button name="do" value="remove" class="sub">外す</button></form>` : ''}</li>`).join('')}</ul>`
     : '<p>まだ指定されていません。お試しの間は、メンバー全員が承認できます。</p>';
+  const pick = choices.length
+    ? `<form method="post" action="/team">${tokenField}<input type="hidden" name="do" value="add">
+<select name="name" required><option value="">名前を選ぶ</option>${choices.map(n => `<option value="${esc(n)}">${esc(n)}${me(n)}</option>`).join('')}</select> <button>加える</button></form>
+<p class="note">チームの記録（候補を出した人、承認した人など）に出てくる名前です。</p>`
+    : '';
   const add = canEdit
-    ? `<h2>承認する人を加える</h2>
+    ? `<h2>承認する人を加える</h2>${pick}
+<details${choices.length ? '' : ' open'}><summary>一覧にない名前を足す</summary>
 <form method="post" action="/team">${tokenField}<input type="hidden" name="do" value="add">
-<input type="text" name="name" list="members" placeholder="名前" required maxlength="40"> <button>加える</button>
-<datalist id="members">${known.filter(n => !approvers.includes(n)).map(n => `<option value="${esc(n)}">`).join('')}</datalist></form>
-<p class="note">名前は、その人が拡張機能の設定の「あなたの名前」に入れたものと、同じにしてください。</p>
-${approvers.length ? '' : `<p class="warn">一人でも加えると、そこからは、一覧に載っている人だけが、承認と、この一覧の変更をできるようになります。あなたも承認する場合は、ご自分の名前（${esc(user)}）も加えてください。</p>`}`
+<input type="text" name="name" placeholder="名前" required maxlength="40"> <button>加える</button></form>
+<p class="note">まだチームの記録に出てこない人を足すときに使います。その人が拡張機能の設定の「あなたの名前」に入れる名前と、同じにしてください。</p></details>
+${approvers.length ? '' : `<p class="note">最初の1人を加えると、加えたあなた（${esc(user)}）も一覧に入ります。そこからは、一覧に載っている人だけが、承認と、この一覧の変更をできます。</p>`}`
     : `<p class="note">一覧を変えられるのは、一覧に載っている人だけです。変えたいときは、${esc(approvers.join('、'))}さんに頼んでください。</p>`;
   const history = changes.length
     ? `<table><tr><th>日時</th><th>変えた人</th><th>内容</th></tr>${[...changes].reverse().map(c =>
@@ -153,7 +166,8 @@ ${user === 'me' ? '<p class="warn">あなたの名前が「me」のままです�
 ${fromFile.length ? `<p class="note">最初の設定で指定されていた人：${esc(fromFile.join('、'))}</p>` : ''}
 ${add}
 <h2>変更の記録</h2>${history}
-<p class="note">変更はチームの共有フォルダに記録され、同期されると、ほかのメンバーのパソコンにも反映されます。</p>`;
+<p class="note">変更はチームの共有フォルダに記録され、同期されると、ほかのメンバーのパソコンにも反映されます。</p>
+<p class="note">名前は、各メンバーが拡張機能の設定で名乗ったものです。この一覧は、チームの約束ごとを画面にしたもので、なりすましを防ぐ仕組みではありません。</p>`;
 }
 
 async function changeTeam(user: string, action: string, name: string): Promise<string> {
@@ -161,24 +175,32 @@ async function changeTeam(user: string, action: string, name: string): Promise<s
   const who = cleanName(name);
   if (!who) return '名前を入れてください。';
   const type = action === 'remove' ? 'approver_removed' as const : 'approver_added' as const;
-  await withStore(db => recordAndApply(db, FOLDER!, { v: 1, type, at: new Date().toISOString(), by: user, name: who }, folderProjectIds()));
-  return `${who} さんを承認する人${type === 'approver_added' ? 'に加えました' : 'から外しました'}。`;
+  const wasEmpty = await withStore(async db => {
+    const empty = !(await teamState(db, FOLDER!)).approvers.length;
+    await recordAndApply(db, FOLDER!, { v: 1, type, at: new Date().toISOString(), by: user, name: who }, folderProjectIds());
+    return empty;
+  });
+  if (type === 'approver_removed') return `${who} さんを承認する人から外しました。`;
+  return wasEmpty && who !== user ? `${who} さんと、あなた（${user}）を承認する人に加えました。` : `${who} さんを承認する人に加えました。`;
 }
 
 // ---- ほかの AI に貼る ----
 
+const SECRET_CONFIRM = '社外秘の案件です。会社が使ってよいと決めた AI にだけ貼ってください。';
+
 async function copyView(user: string, projectId?: string): Promise<string> {
-  const { projects, text } = await withStore(async (db, folder) => {
+  const { projects, text, secret } = await withStore(async (db, folder) => {
     const ids = await allowedProjectIds(db, user);
-    const projects = await db.query<{ id: string; name: string }>('select id, name from projects where id = any($1::text[]) order by name', [ids]);
+    const projects = await db.query<{ id: string; name: string; default_classification: string }>(
+      'select id, name, default_classification from projects where id = any($1::text[]) order by name', [ids]);
     const p = projects.find(x => x.id === projectId);
-    if (!p) return { projects, text: undefined };
+    if (!p) return { projects, text: undefined, secret: false };
     const pack = await buildContextPack(db, [folder], { userId: user, query: p.name, projectHint: p.id, destination: COPY_DESTINATION, matchBySearch: false });
     await logAccess(db, {
       userId: user, destination: COPY_DESTINATION.id, tool: 'copy_text', request: { project: p.id }, projectId: pack.project?.id,
       returned: { current: pack.current.map(d => d.id), previous: pack.previous.map(d => d.id), documents: pack.documents.map(d => d.source.uri), open: pack.open.map(o => o.topicKey) },
     });
-    return { projects, text: renderCopyText(pack) };
+    return { projects, text: renderCopyText(pack), secret: ['confidential', 'restricted'].includes(p.default_classification) };
   });
   const options = projects.map(p => `<option value="${esc(p.id)}"${p.id === projectId ? ' selected' : ''}>${esc(p.name)}</option>`).join('');
   return `<h1>ほかの AI に貼る文面</h1>
@@ -186,7 +208,7 @@ async function copyView(user: string, projectId?: string): Promise<string> {
 <form method="get" action="/copy"><select name="project">${projects.length ? '<option value="">案件を選ぶ</option>' : ''}${options}</select> <button>文面を作る</button></form>
 ${text ? `<h2>貼り付け用の文面</h2>
 <textarea id="copytext" readonly>${esc(text)}</textarea>
-<p><button type="button" onclick="var t=document.getElementById('copytext');t.select();(navigator.clipboard?navigator.clipboard.writeText(t.value):Promise.reject()).then(function(){document.getElementById('copied').textContent='コピーしました。'},function(){document.execCommand('copy');document.getElementById('copied').textContent='コピーしました。'})">コピーする</button> <span id="copied" class="note"></span></p>
+<p><button type="button" onclick="${secret ? `if(!confirm('${SECRET_CONFIRM}'))return;` : ''}var t=document.getElementById('copytext');t.select();(navigator.clipboard?navigator.clipboard.writeText(t.value):Promise.reject()).then(function(){document.getElementById('copied').textContent='コピーしました。'},function(){document.execCommand('copy');document.getElementById('copied').textContent='コピーしました。'})">コピーする</button> <span id="copied" class="note"></span></p>
 <p class="note">文面は、いま作った時点の内容です。決定が変わったら、作り直してください。社外の AI に貼ってよいかは、会社の決まりに従ってください。</p>` : ''}`;
 }
 
@@ -257,7 +279,7 @@ function dataView(): string {
 </ul>
 <p><b>消えないもの：</b>資料フォルダの資料${FOLDER ? 'と、チームの共有フォルダにある承認の記録（チームのものとして残り、ほかのメンバーは引き続き使えます）' : ''}。</p>
 <h2>このパソコンのデータを消す</h2>
-<form method="post" action="/data/clear" onsubmit="return confirm('このパソコンのデータを消します。よろしいですか？')">${tokenField}
+<form method="post" action="/data/clear" onsubmit="return confirm('このパソコンのデータを消します。AI に渡したものの記録も消えます。よろしいですか？')">${tokenField}
 <label><input type="checkbox" name="ok" value="1" required> AI に渡したものの記録も消えることを確かめました</label><br><br>
 <button class="danger">このパソコンのデータを消す</button></form>
 <p class="note">拡張機能を入れたままにすると、次に AI に頼んだときに、資料の索引が作り直されます。</p>`;
@@ -293,6 +315,7 @@ async function hookContext(user: string, prompt: string): Promise<string | undef
     });
     if (process.env.SB_HOOK_LOG) appendFileSync(process.env.SB_HOOK_LOG, `${new Date().toISOString()}\t${pack.project?.id ?? '-'}\n`);
     if (!pack.project) return undefined;
+    if (newerVersionSeen()) pack.cautions.push(NEWER_VERSION_CAUTION);
     return 'この依頼に関係する、このチームで承認された決定と資料です（チームの承認記録より）。\n\n' + renderCopyText(pack);
   });
 }

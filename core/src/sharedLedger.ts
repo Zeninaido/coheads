@@ -27,6 +27,9 @@ export type LedgerEvent =
 
 export type ApproverEvent = Extract<LedgerEvent, { name: string }>;
 const isApproverEvent = (ev: LedgerEvent): ev is ApproverEvent => ev.type === 'approver_added' || ev.type === 'approver_removed';
+const KNOWN_TYPES = new Set(['proposed', 'approved', 'rejected', 'approver_added', 'approver_removed']);
+// A record this version cannot read (a newer Coheads wrote it). It is skipped, and noted so people are told to update.
+const NEWER = 'newer version: ';
 
 const dirs = (root: string) => ({ base: join(root, '.coheads'), events: join(root, '.coheads', 'events') });
 
@@ -92,12 +95,16 @@ async function applyApproverChange(db: Db, root: string, ev: ApproverEvent, proj
   // While nobody is listed every member may set the list; after that, only listed approvers may change it.
   if (list.length && !list.includes(ev.by)) return 'forbidden: not an approver';
   if (ev.type === 'approver_added' ? list.includes(name) : !list.includes(name)) return undefined; // nothing to change
+  const insert = (who: string) => db.query('insert into shared_approver_changes (at, by, kind, who) values ($1, $2, $3, $4)', [ev.at, ev.by, 'approver_added', who]);
+  // Whoever names the first approver is listed too, so nobody locks themselves out by naming only someone else.
+  if (ev.type === 'approver_added' && !list.length && name !== ev.by) await insert(ev.by);
   await db.query('insert into shared_approver_changes (at, by, kind, who) values ($1, $2, $3, $4)', [ev.at, ev.by, ev.type, name]);
   await setApproverRights(db, projectIds, await approverList(db, root));
   return undefined;
 }
 
 async function applyOne(db: Db, root: string, ev: LedgerEvent, projectIds: string[]): Promise<string | undefined> {
+  if ((ev as { v?: number }).v !== 1 || !KNOWN_TYPES.has(ev.type)) return NEWER + String((ev as { type?: unknown }).type);
   const at = new Date(ev.at);
   if (ev.type === 'proposed') {
     if (!projectIds.includes(ev.projectId)) return `unknown project ${ev.projectId}`;
@@ -130,7 +137,10 @@ export async function syncSharedLedger(db: Db, root: string, projectIds: string[
   const names = listEvents(root);
   const applied = (await db.query<{ name: string }>('select name from shared_events_applied order by name')).map(r => r.name);
   const isPrefix = applied.every((n, i) => names[i] === n);
-  if (!isPrefix) {
+  // Records skipped as "newer" that this version can now read: replay so they take effect.
+  const nowKnown = (await db.query<{ note: string }>(`select note from shared_events_applied where note like $1`, [NEWER + '%']))
+    .some(r => KNOWN_TYPES.has(r.note.slice(NEWER.length)));
+  if (!isPrefix || nowKnown) {
     // A late file landed before something already applied (or a file disappeared): replay from scratch.
     await db.exec(`delete from decision_events; delete from decisions; delete from shared_events_applied; delete from shared_approver_changes;`);
     applied.length = 0;
@@ -158,6 +168,18 @@ export async function syncSharedLedger(db: Db, root: string, projectIds: string[
   }
   return { applied: events.length, refused };
 }
+
+/** How many records in the shared folder were written by a newer version and could not be read here. */
+export async function newerRecordCount(db: Db): Promise<number> {
+  await ensureTables(db);
+  const [{ n }] = await db.query<{ n: number }>(`select count(*)::int as n from shared_events_applied where note like $1`, [NEWER + '%']);
+  return n;
+}
+
+/** Shown on the approval page when newerRecordCount() > 0. */
+export const NEWER_VERSION_NOTICE = 'チームの誰かが新しい版を使っています。この版では読めないチームの記録があります。拡張機能を更新してください。';
+/** Added to what the AI receives about a project when newerRecordCount() > 0. */
+export const NEWER_VERSION_CAUTION = 'チームの誰かが新しい版を使っていて、この版では読めないチームの記録がある。利用者に、拡張機能を更新するよう一度伝えてほしい';
 
 /**
  * Folder mode writes: apply locally first (this checks permissions and state), then record the event file
