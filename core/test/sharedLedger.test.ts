@@ -7,7 +7,7 @@ import { connect, migrate, reset, type Db } from '../src/db';
 import { buildContextPack } from '../src/contextPack';
 import { FolderAdapter } from '../src/adapters/folder';
 import { grant } from '../src/permissions';
-import { recordAndApply, syncSharedLedger, writeEvent } from '../src/sharedLedger';
+import { recordAndApply, syncSharedLedger, teamState, writeEvent } from '../src/sharedLedger';
 
 if (process.env.SB_ENGINE === 'postgres') test.skip('shared ledger runs on PGLite only (two local stores)', () => {});
 else {
@@ -15,15 +15,15 @@ const root = mkdtempSync(join(tmpdir(), 'coheads-shared-'));
 const PROJECTS = ['A社'];
 const dest = { id: 'claude-desktop', ceiling: 'confidential' as const };
 
-async function member(name: string): Promise<{ db: Db; folder: FolderAdapter; sync: () => Promise<{ applied: number; refused: { name: string; reason: string }[] }> }> {
+async function member(name: string, root2 = root): Promise<{ db: Db; folder: FolderAdapter; sync: () => Promise<{ applied: number; refused: { name: string; reason: string }[] }> }> {
   const db = await connect(); // in-memory PGLite: each member's own local index
   await reset(db);
   await db.query(`insert into workspaces values ('local', 'team', 'shared') on conflict do nothing`);
   await db.query(`insert into projects values ('A社', 'local', 'A社', $1::text[], 'internal') on conflict do nothing`, [['エー社']]);
   await grant(db, { subject: { type: 'user', id: name }, relation: 'member', resource: { type: 'project', id: 'A社' } });
-  const folder = new FolderAdapter(db, root, { 'A社': 'A社' }, { prefixIds: true });
+  const folder = new FolderAdapter(db, root2, { 'A社': 'A社' }, { prefixIds: true });
   await folder.ingest();
-  return { db, folder, sync: () => syncSharedLedger(db, root, PROJECTS, name) };
+  return { db, folder, sync: () => syncSharedLedger(db, root2, PROJECTS, name) };
 }
 
 const money = (amount: number) => ({ type: 'money' as const, amount, currency: 'JPY', period: 'monthly' as const, tax: 'excluded' as const });
@@ -105,6 +105,71 @@ describe('shared-folder ledger', () => {
     const applied = await sato.db.query<{ name: string }>('select name from shared_events_applied');
     expect(applied.some(a => a.name.includes('partial'))).toBe(false);
     renameSync(join(dir, '2099-01-01T00-00-00-000Z-partial.json'), join(dir, '.ignored.json'));
+  });
+});
+
+describe('approvers set on the approval page (recorded as events)', () => {
+  const team = mkdtempSync(join(tmpdir(), 'coheads-team-'));
+  let a: Awaited<ReturnType<typeof member>>; // 佐藤
+  let b: Awaited<ReturnType<typeof member>>; // 鈴木
+  const events = () => readdirSync(join(team, '.coheads', 'events')).filter(n => n.endsWith('.json'));
+  const add = (by: string, name: string, at: string) => ({ v: 1 as const, type: 'approver_added' as const, at, by, name });
+  const removed = (by: string, name: string, at: string) => ({ v: 1 as const, type: 'approver_removed' as const, at, by, name });
+
+  beforeAll(async () => {
+    mkdirSync(join(team, 'A社'));
+    cpSync(join(import.meta.dir, '..', '..', 'corpus', 'a-sha', '2026-10-28-a-proposal-v1.md'), join(team, 'A社', '提案書v1.md'));
+    a = await member('佐藤', team);
+    b = await member('鈴木', team);
+    await a.sync(); await b.sync();
+  });
+  afterAll(async () => { await a.db.close(); await b.db.close(); });
+
+  test('while nobody is listed, any member may name the first approver; then only listed people may approve', async () => {
+    expect((await teamState(b.db, team)).approvers).toEqual([]);
+    await recordAndApply(b.db, team, add('鈴木', '佐藤', '2026-12-01T00:00:00.000Z'), PROJECTS);
+    await recordAndApply(b.db, team, { v: 1, type: 'proposed', at: '2026-12-01T01:00:00.000Z', by: '鈴木', decisionId: 't-1',
+      projectId: 'A社', topicKey: 'proposal.price', label: '提案価格', value: money(100000), validFrom: '2026-12-01', sources: [] }, PROJECTS);
+    await expect(recordAndApply(b.db, team, { v: 1, type: 'approved', at: '2026-12-01T02:00:00.000Z', by: '鈴木', decisionId: 't-1' }, PROJECTS)).rejects.toThrow('not an approver');
+    await a.sync();
+    expect((await teamState(a.db, team)).approvers).toEqual(['佐藤']);
+  });
+
+  test('someone not listed cannot change the list; nothing is written', async () => {
+    const before = events().length;
+    await expect(recordAndApply(b.db, team, add('鈴木', '鈴木', '2026-12-01T03:00:00.000Z'), PROJECTS)).rejects.toThrow('not an approver');
+    expect(events().length).toBe(before);
+  });
+
+  test('an approver adds a member, who approves; a later removal does not undo that approval on any machine', async () => {
+    await recordAndApply(a.db, team, add('佐藤', '鈴木', '2026-12-02T00:00:00.000Z'), PROJECTS);
+    await b.sync();
+    await recordAndApply(b.db, team, { v: 1, type: 'approved', at: '2026-12-02T01:00:00.000Z', by: '鈴木', decisionId: 't-1' }, PROJECTS);
+    await a.sync();
+    await recordAndApply(a.db, team, removed('佐藤', '鈴木', '2026-12-03T00:00:00.000Z'), PROJECTS);
+    // A late file forces a full replay: the approval is checked against the list at its own time.
+    writeEvent(team, { v: 1, type: 'proposed', at: '2026-12-01T00:30:00.000Z', by: '鈴木', decisionId: 't-memo',
+      projectId: 'A社', topicKey: 'topic.memo', label: 'メモ', value: { type: 'text', text: '後から届いた候補' }, sources: [] });
+    for (const [m, who] of [[a, '佐藤'], [b, '鈴木']] as const) {
+      const r = await m.sync();
+      expect(r.refused).toEqual([]);
+      expect(await current(m.db, m.folder, who)).toEqual([100000]);
+      const st = await teamState(m.db, team);
+      expect(st.approvers).toEqual(['佐藤']);
+      expect(st.changes.map(c => `${c.by}:${c.kind}:${c.who}`)).toEqual(['鈴木:approver_added:佐藤', '佐藤:approver_added:鈴木', '佐藤:approver_removed:鈴木']);
+    }
+  });
+
+  test('a removed member can no longer approve; when the list is emptied, every member may approve again', async () => {
+    await recordAndApply(b.db, team, { v: 1, type: 'proposed', at: '2026-12-04T00:00:00.000Z', by: '鈴木', decisionId: 't-2',
+      projectId: 'A社', topicKey: 'proposal.price', label: '提案価格', value: money(110000), validFrom: '2026-12-05', sources: [] }, PROJECTS);
+    await expect(recordAndApply(b.db, team, { v: 1, type: 'approved', at: '2026-12-04T01:00:00.000Z', by: '鈴木', decisionId: 't-2' }, PROJECTS)).rejects.toThrow('not an approver');
+    await a.sync();
+    await recordAndApply(a.db, team, removed('佐藤', '佐藤', '2026-12-04T02:00:00.000Z'), PROJECTS);
+    await b.sync();
+    expect((await teamState(b.db, team)).approvers).toEqual([]);
+    await recordAndApply(b.db, team, { v: 1, type: 'approved', at: '2026-12-04T03:00:00.000Z', by: '鈴木', decisionId: 't-2' }, PROJECTS);
+    expect(await current(b.db, b.folder, '鈴木')).toEqual([110000]);
   });
 });
 }
