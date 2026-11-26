@@ -1,0 +1,13 @@
+id: price-question
+title: 正式名で、確定した提案価格を聞く
+scene: 決まったことを確かめる
+prompt: A社の提案価格っていくらで確定してたっけ？
+data: demo
+expect:
+  context: required
+  project: a-sha
+  includes_any: ["120,000", "12万"]
+  excludes: ["Coheads", "台帳", "get_context", "propose_decision"]
+  judge:
+    - 現行の提案価格を月額120,000円（税別）と答えている
+    - 100,000円（10万円）を現行の価格として答えていない

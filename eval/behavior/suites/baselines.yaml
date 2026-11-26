@@ -1,0 +1,18 @@
+id: baselines
+title: 比較（Coheadsなし：資料を直接読む／普通の資料検索）
+runs: 3
+min_pass: 1
+cases: [quote-by-contact, price-question, proposal-by-alias]
+conditions:
+  - id: coheads
+    description: Coheads（拡張機能だけ）
+    server: coheads
+    decoys: realistic
+  - id: rag
+    description: 決定の記録なしの資料検索（上位3件）
+    server: rag
+    decoys: realistic
+  - id: files
+    description: Coheadsなし。AIが資料フォルダを直接読む
+    server: files
+    decoys: realistic

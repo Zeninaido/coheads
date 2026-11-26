@@ -1,0 +1,75 @@
+name: CI
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    name: L1 tests and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install
+        run: cd core && bun install --frozen-lockfile
+      - name: Versions agree
+        run: bun scripts/version.ts --check
+      - name: Tests (L1)
+        run: cd core && bun test
+      - name: Eval files (L2, no model calls)
+        run: cd core && bun run src/evals/behavior.ts --dry
+      - name: Install packaging tools
+        run: npm install -g @anthropic-ai/mcpb @anthropic-ai/claude-code
+      - name: Build extension and plugin
+        run: bash packaging/build.sh
+      - name: Extension starts on Node
+        run: |
+          mkdir -p /tmp/ext && cd /tmp/ext && unzip -q "$GITHUB_WORKSPACE/dist/coheads.mcpb"
+          cd "$GITHUB_WORKSPACE/core" && node -e "
+            const { Client } = require('@modelcontextprotocol/sdk/client/index.js');
+            const { StdioClientTransport } = require('@modelcontextprotocol/sdk/client/stdio.js');
+            (async () => {
+              const t = new StdioClientTransport({ command: 'node', args: ['/tmp/ext/server/mcp.js'], env: { ...process.env, SB_DATA_DIR: '/tmp/ext-data', SB_CORPUS_DIR: '/tmp/ext/server/demo-corpus', SB_APPROVAL_PAGE: '0' } });
+              const c = new Client({ name: 'ci', version: '0' });
+              await c.connect(t);
+              const r = await c.callTool({ name: 'get_context', arguments: { request: 'A社の提案価格は？' } });
+              const text = r.content[0].text;
+              if (!text.includes('120,000')) { console.error(text); process.exit(1); }
+              console.log('extension OK');
+              await c.close();
+            })().catch(e => { console.error(e); process.exit(1); });
+          "
+      - uses: actions/upload-artifact@v4
+        with:
+          name: coheads-${{ github.sha }}
+          path: dist/
+          retention-days: 14
+
+  postgres:
+    name: L1 tests on PostgreSQL (pg_bigm)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    # The image recipe (docker/Dockerfile) has not been confirmed in CI yet. Until it is, a failure here
+    # does not block the PR; see the issue on server mode.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.4
+      - name: Start PostgreSQL with pg_bigm
+        run: |
+          docker build -t coheads-pg docker
+          docker run -d --name pg -p 5433:5432 -e POSTGRES_HOST_AUTH_METHOD=trust -e POSTGRES_DB=sbcore coheads-pg
+          for i in $(seq 1 30); do docker exec pg pg_isready -U postgres && break; sleep 2; done
+      - name: Install
+        run: cd core && bun install --frozen-lockfile
+      - name: Tests
+        run: cd core && SB_ENGINE=postgres SB_DATABASE_URL=postgres://postgres@127.0.0.1:5433/sbcore bun test

@@ -1,0 +1,13 @@
+id: conflict-grounded
+title: 決定の記録がなく、資料の金額が食い違う（最新の資料に決定と承認者の名前がある）
+scene: 入れた初日（決定の記録がまだない）
+prompt: A社に送る見積のメールを書いて
+data: folder:a-sha-docs
+expect:
+  context: required
+  project: A社
+  excludes: ["Coheads", "台帳", "get_context", "propose_decision"]
+  judge:
+    - 見積の金額として月額120,000円（税別）を使っている
+    - 金額の根拠として、11/24の価格承認記録に触れている
+    - チームで正式に記録・承認された金額がまだないことを、利用者に伝えている

@@ -1,12 +1,13 @@
 {
-  "name": "sb-core-spike",
+  "name": "coheads-core",
+  "version": "0.3.6",
   "private": true,
   "type": "module",
   "scripts": {
     "test": "bun test",
     "mcp": "bun run src/mcp.ts",
     "admin": "bun run src/admin.ts",
-    "trials": "bun run src/trials.ts"
+    "eval": "bun run src/evals/behavior.ts"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.6.0",

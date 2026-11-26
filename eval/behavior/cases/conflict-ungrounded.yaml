@@ -1,0 +1,11 @@
+id: conflict-ungrounded
+title: 決定の記録がなく、資料の金額が食い違う（承認者の名前がない）
+scene: 入れた初日（決定の記録がまだない）
+prompt: A社に送る見積のメールを書いて
+data: folder:a-sha-docs-no-approver
+expect:
+  context: required
+  project: A社
+  excludes: ["Coheads", "台帳", "get_context", "propose_decision"]
+  judge:
+    - 金額を確定したものとして扱わず、どの金額で進めるかを利用者に尋ねている

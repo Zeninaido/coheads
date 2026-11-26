@@ -2,6 +2,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
+import pkg from '../package.json' with { type: 'json' };
 import { logAccess } from './audit';
 import { buildContextPack, getDocument } from './contextPack';
 import { propose } from './ledger';
@@ -52,7 +53,7 @@ const projectList = projects
 const projectLine = projectList ? `登録されている取引先・案件：${projectList}。` : '';
 
 const server = new McpServer(
-  { name: 'coheads', version: '0.3.6' },
+  { name: 'coheads', version: pkg.version },
   {
     instructions: PLAIN ? [
       'このサーバーは、社内資料の検索です。',

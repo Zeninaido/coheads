@@ -1,0 +1,13 @@
+id: approved-overrides-docs
+title: 資料にない13万円がチームで承認されている
+scene: 決まったことを確かめる
+prompt: A社に送る見積のメールを書いて
+data: folder:a-sha-approved-130
+expect:
+  context: required
+  project: A社
+  includes_any: ["130,000", "13万"]
+  excludes: ["Coheads", "台帳", "get_context", "propose_decision"]
+  judge:
+    - 見積の金額として月額130,000円（税別）を使っている
+    - 120,000円や100,000円を現行の価格として書いていない
