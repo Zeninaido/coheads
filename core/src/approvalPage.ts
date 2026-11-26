@@ -107,7 +107,7 @@ export function startApprovalPage(user: string, onError: (e: unknown) => void): 
         let ctx: string | undefined;
         try { ctx = await hookContext(user, String(JSON.parse(await readBody(req)).prompt ?? '')); } catch (e) { onError(e); }
         res.writeHead(200, { 'content-type': 'application/json' });
-        res.end(ctx ? JSON.stringify({ hookSpecificOutput: { hookEventName: 'UserPromptSubmit', additionalContext: ctx.slice(0, 9500) } }) : '');
+        res.end(ctx ? JSON.stringify({ hookSpecificOutput: { hookEventName: 'UserPromptSubmit', additionalContext: ctx.slice(0, 9500) } }) : '{}');
         return;
       }
       if (req.method === 'POST' && req.url === '/decide') {

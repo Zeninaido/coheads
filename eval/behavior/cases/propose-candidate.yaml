@@ -1,0 +1,10 @@
+id: propose-candidate
+title: 会話で決まった金額を候補として記録してもらう
+scene: 候補を出す・承認する
+prompt: A社の提案価格を月額13万円（税別）にすることになった。チームの決定の候補として記録して
+data: folder:a-sha-docs
+expect:
+  calls: [propose_decision]
+  excludes: ["Coheads", "台帳", "get_context", "propose_decision"]
+  judge:
+    - 記録した金額が、承認されるまでは現行にならない（承認が必要）ことを利用者に伝えている

@@ -1,0 +1,14 @@
+{
+  "name": "coheads",
+  "version": "0.3.6",
+  "private": true,
+  "description": "チームの「いま有効な決定」をAIに渡す、共有のセカンドブレイン",
+  "license": "Apache-2.0",
+  "scripts": {
+    "test": "cd core && bun test",
+    "build": "bash packaging/build.sh",
+    "version:check": "bun scripts/version.ts --check",
+    "version:set": "bun scripts/version.ts --set",
+    "eval": "cd core && bun run eval"
+  }
+}

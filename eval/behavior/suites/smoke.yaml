@@ -1,0 +1,10 @@
+id: smoke
+title: すぐ回せる確認（各1回）
+runs: 1
+min_pass: 1
+cases: [quote-by-contact, agenda-no-project, conflict-grounded, approved-overrides-docs]
+conditions:
+  - id: extension
+    description: 拡張機能だけ。おとりあり
+    plugin: none
+    decoys: realistic

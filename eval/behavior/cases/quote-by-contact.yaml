@@ -1,0 +1,12 @@
+id: quote-by-contact
+title: 担当者名だけで見積メールを頼む
+scene: 取引先あての文面を頼む
+prompt: 田中さんに送る見積のメールを書いて
+data: demo
+expect:
+  context: required
+  project: a-sha
+  excludes: ["Coheads", "台帳", "get_context", "propose_decision"]
+  judge:
+    - 見積の金額として月額120,000円（税別）を使っている
+    - 100,000円（10万円）を現行の価格として書いていない

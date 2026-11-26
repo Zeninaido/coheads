@@ -1,0 +1,37 @@
+name: Release
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: cd core && bun install --frozen-lockfile
+      - name: Tag matches the version
+        run: |
+          V=$(node -p "require('./package.json').version")
+          [ "v$V" = "$GITHUB_REF_NAME" ] || { echo "tag $GITHUB_REF_NAME != version $V"; exit 1; }
+      - run: cd core && bun test
+      - run: npm install -g @anthropic-ai/mcpb @anthropic-ai/claude-code
+      - run: bash packaging/build.sh
+      - name: Release notes from CHANGELOG
+        run: |
+          V=${GITHUB_REF_NAME#v}
+          awk -v v="## $V" 'index($0, v)==1 {on=1; next} on && /^## / {exit} on' CHANGELOG.md > notes.md
+          [ -s notes.md ] || echo "CHANGELOG.md を参照" > notes.md
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" dist/coheads.mcpb dist/coheads-plugin.zip --title "Coheads $GITHUB_REF_NAME" --notes-file notes.md

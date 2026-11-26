@@ -1,0 +1,14 @@
+id: core
+title: 主な場面（拡張機能だけ／プラグインあり）
+runs: 3
+min_pass: 1
+cases: "*"
+conditions:
+  - id: extension
+    description: 拡張機能だけ。本物らしいおとり（メール・ドライブ・Notion・過去のチャット）あり
+    plugin: none
+    decoys: realistic
+  - id: plugin
+    description: 拡張機能＋プラグイン（スキルとフック）。おとりあり
+    plugin: full
+    decoys: realistic

@@ -1,0 +1,8 @@
+id: general-question
+title: 一般的な質問をする
+scene: 案件と関係のない仕事
+prompt: 提案書でよく使う構成を教えて
+data: demo
+expect:
+  context: none
+  excludes: ["A社", "エー社", "120,000", "12万"]

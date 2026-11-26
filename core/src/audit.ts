@@ -1,3 +1,4 @@
+import { appendFileSync } from 'node:fs';
 import type { Db } from './db';
 
 export interface AccessEntry {
@@ -14,6 +15,8 @@ export async function logAccess(db: Db, e: AccessEntry) {
     `insert into access_log (user_id, destination, tool, request, project_id, returned) values ($1,$2,$3,$4::jsonb,$5,$6::jsonb)`,
     [e.userId, e.destination, e.tool, JSON.stringify(e.request), e.projectId ?? null, JSON.stringify(e.returned)],
   );
+  // Behavior evals read each run's calls from this file (the store itself is locked by the server process).
+  if (process.env.SB_ACCESS_LOG) appendFileSync(process.env.SB_ACCESS_LOG, JSON.stringify({ at: new Date().toISOString(), ...e }) + '\n');
 }
 
 export async function recentAccess(db: Db, limit = 20) {

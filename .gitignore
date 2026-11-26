@@ -4,5 +4,4 @@ build/
 dist/
 *.mcpb
 .DS_Store
-# Behavior eval runs are kept only when summarized (see eval/behavior/README.md)
-eval/behavior/results/**/raw/
+eval/search/embed_results.json

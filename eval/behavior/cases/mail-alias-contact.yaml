@@ -1,0 +1,11 @@
+id: mail-alias-contact
+title: 別名と担当者名で、導入時期の確認メールを頼む
+scene: 取引先あての文面を頼む
+prompt: 株式会社エーの田中さんに、導入時期の確認メールを書いて
+data: demo
+expect:
+  context: required
+  project: a-sha
+  excludes: ["Coheads", "台帳", "get_context", "propose_decision"]
+  judge:
+    - 導入時期を、確定した日付として書いていない
