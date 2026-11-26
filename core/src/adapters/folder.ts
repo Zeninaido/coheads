@@ -1,4 +1,6 @@
+import { createHash } from 'node:crypto';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { extract, isReadable, stemOf } from './extract';
 import { basename, join } from 'node:path';
 import type { Db } from '../db';
 import { bigramScores, normalize } from '../normalize';
@@ -37,31 +39,47 @@ export class FolderAdapter implements SourceAdapter {
 
   async ingest(): Promise<number> {
     const aliases = await aliasMap(this.db);
+    await this.db.exec('create table if not exists document_files (id text primary key, stamp text not null)');
+    // Re-index when aliases change (they are part of the normalized text).
+    const aliasKey = createHash('sha1').update(JSON.stringify(Object.entries(aliases).sort())).digest('hex').slice(0, 12);
     let n = 0;
     const seen: string[] = [];
     for (const folder of readdirSync(this.root)) {
       const projectId = this.folderToProject[folder];
       if (!projectId) continue; // unmapped folders are never searchable
       const [p] = await this.db.query('select default_classification from projects where id = $1', [projectId]);
-      for (const file of readdirSync(join(this.root, folder)).filter(f => /\.(md|txt)$/i.test(f) && !f.startsWith('.'))) {
+      for (const file of readdirSync(join(this.root, folder)).filter(isReadable)) {
         const path = join(this.root, folder, file);
-        const stem = file.replace(/\.(md|txt)$/i, '');
+        // Markdown and text keep the bare name (ids already in use); Word and PDF keep the extension, so
+        // 提案書.docx and 提案書.pdf in the same folder stay two documents.
+        const stem = /\.(md|txt)$/i.test(file) ? stemOf(file) : file;
         const docId = this.opts.prefixIds ? `${folder}/${stem}` : stem;
         seen.push(docId);
-        const { meta, body } = parseFrontmatter(readFileSync(path, 'utf8'));
+        // Word and PDF take time to read; read a file again only when it changed (size or time).
+        const st = statSync(path);
+        const stamp = `${st.size}:${st.mtimeMs}:${aliasKey}`;
+        const [known] = await this.db.query<{ stamp: string }>(
+          'select f.stamp from document_files f join documents d on d.id = f.id where f.id = $1', [docId]);
+        if (known?.stamp === stamp) { n++; continue; }
+        const ex = await extract(path);
+        const { meta, body } = /\.(md|txt)$/i.test(file) ? parseFrontmatter(ex.body) : { meta: {} as Record<string, string>, body: ex.body || `（${ex.note ?? '中身を読めなかった'}）` };
+        const title = meta.title ?? ex.title ?? stemOf(file);
         await this.db.query(
           `insert into documents (id, project_id, adapter_id, uri, title, body, body_norm, updated_at, classification)
            values ($1,$2,$3,$4,$5,$6,$7,$8,$9)
            on conflict (id) do update set body = excluded.body, body_norm = excluded.body_norm,
              title = excluded.title, updated_at = excluded.updated_at, classification = excluded.classification`,
-          [docId, projectId, this.id, 'file://' + path, meta.title ?? stem, body,
-           normalize(body, aliases), meta.date ?? statSync(path).mtime.toISOString(), meta.classification ?? p.default_classification],
+          [docId, projectId, this.id, 'file://' + path, title, body,
+           normalize(body, aliases), meta.date ?? ex.modified ?? st.mtime.toISOString(), meta.classification ?? p.default_classification],
         );
+        await this.db.query(
+          `insert into document_files (id, stamp) values ($1, $2) on conflict (id) do update set stamp = excluded.stamp`, [docId, stamp]);
         n++;
       }
     }
     // Files removed from the folder leave the index too.
     await this.db.query(`delete from documents where adapter_id = $1 and not (id = any($2::text[]))`, [this.id, seen]);
+    await this.db.query(`delete from document_files where not (id = any($1::text[]))`, [seen]);
     return n;
   }
 
