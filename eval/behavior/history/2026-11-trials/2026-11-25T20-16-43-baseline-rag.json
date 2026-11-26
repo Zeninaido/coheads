@@ -1,0 +1,539 @@
+{
+  "label": "baseline-rag",
+  "baseline": "rag",
+  "decoys": false,
+  "names": true,
+  "user": "suzuki",
+  "n": 3,
+  "runs": [
+    {
+      "id": "p1",
+      "run": 1,
+      "servers": {
+        "shared-second-brain": "connected"
+      },
+      "tools": [
+        "ToolSearch",
+        "search_documents",
+        "search_documents",
+        "get_document",
+        "get_document",
+        "get_document"
+      ],
+      "calledContext": false,
+      "firstTool": "search_documents",
+      "answer": "株式会社エー（エー社）向け提案書の骨子です。社内資料では「エー社」と「A社」の表記が混在していますが、同じ会社として扱いました。\n\n---\n\n# 株式会社エー様向け 新サービスご提案書（骨子）\n\n**宛先**：株式会社エー 情報システム部 田中様\n\n## 1. はじめに\n- ご提案の背景と目的\n- これまでのヒアリングの振り返り\n\n## 2. 現状の課題\n- ヒアリングで伺った課題 ※要記入\n- 課題がそのままの場合の影響\n\n## 3. ご提案内容\n- 新サービスの概要\n- 主な機能 ※10月の提案以降に増えたご要望（機能追加）を反映\n- 導入後の効果\n\n## 4. ご提案価格\n- **月額 120,000円（税別）**\n- 含まれる範囲（機能・サポート）の明記\n\n## 5. 導入スケジュール\n- **導入時期：未定（調整中）**\n- 想定する進め方：ご契約 → 準備・設定 → 稼働開始\n- 稼働日程が決まり次第、具体的なスケジュールをご提示\n\n## 6. サポート体制\n- 導入時の支援、運用中の問い合わせ窓口\n\n## 7. 次のステップ\n- 次回のお打ち合わせで稼働日程を確認\n- お見積書の提出、ご契約手続き\n\n---\n\n**注意点**\n- **価格は120,000円です。** 10月28日の提案書v1は月額100,000円ですが、11月24日に佐藤さん（営業責任者）の承認で120,000円に改定されています。v1を流用する場合は、ここを必ず差し替えてください。\n- **導入時期はまだ書けません。** 11月25日のヒアリングで、田中様から「稼働日程が決まらないので導入時期は確定できない」と言われ、次回の打ち合わせで確認することになっています。具体的な日付は入れていません。\n- 課題や機能の具体的な中身は社内資料に見つからなかったため、項目だけにしてあります。\n\n本文まで書き起こすか、Word・スライドの形にするかを言っていただければ、続けて作ります。",
+      "calls": [
+        {
+          "name": "ToolSearch",
+          "input": {
+            "query": "select:mcp__shared-second-brain__search_documents,mcp__shared-second-brain__get_document",
+            "max_results": 2
+          }
+        },
+        {
+          "name": "search_documents",
+          "input": {
+            "query": "エー社 提案 価格 導入時期"
+          }
+        },
+        {
+          "name": "search_documents",
+          "input": {
+            "query": "A社 ヒアリング"
+          }
+        },
+        {
+          "name": "get_document",
+          "input": {
+            "id": "doc:2026-10-28-a-proposal-v1"
+          }
+        },
+        {
+          "name": "get_document",
+          "input": {
+            "id": "doc:2026-11-25-a-hearing"
+          }
+        },
+        {
+          "name": "get_document",
+          "input": {
+            "id": "doc:2026-11-24-a-price-approval"
+          }
+        }
+      ],
+      "costUsd": 0.1294962,
+      "inputTokens": 10,
+      "outputTokens": 1444,
+      "contextProjects": []
+    },
+    {
+      "id": "p1",
+      "run": 2,
+      "servers": {
+        "shared-second-brain": "connected"
+      },
+      "tools": [
+        "ToolSearch",
+        "search_documents",
+        "get_document",
+        "get_document",
+        "get_document"
+      ],
+      "calledContext": false,
+      "firstTool": "search_documents",
+      "answer": "エー社向け提案書の骨子をまとめました。価格は最新の承認額である**月額120,000円（税別）**にしています。導入時期は先方でまだ決まっていないため、日付は書かずに「協議のうえ決定」としました。\n\n---\n\n# 株式会社エー様 新サービスご提案書（骨子案）\n\n**宛先**：株式会社エー 情報システム部 田中様\n\n### 1. はじめに\n- ご提案の背景と目的\n- 本書の構成\n\n### 2. 貴社の現状と課題\n- ヒアリングで伺った現状（※ヒアリングメモに課題の記述がないため、内容を追記してください）\n- 解決したい課題の整理\n\n### 3. ご提案内容\n- 新サービスの概要\n- 課題ごとの解決方法\n- 導入による効果\n\n### 4. ご提案価格\n- **月額 120,000円（税別）**\n- 料金に含まれる範囲（※要確認：初期費用の有無、契約期間）\n\n### 5. 導入スケジュール\n- **導入時期：貴社の稼働日程が決まり次第、協議のうえ決定**\n- 標準的な導入の流れ（ご契約 → 準備 → 稼働開始）\n- 次回お打ち合わせで、稼働日程と導入時期をご相談\n\n### 6. サポート体制\n- 導入時の支援\n- 稼働後のサポート窓口\n\n### 7. 今後の進め方\n- 次回お打ち合わせで確認したい事項（稼働日程・導入時期）\n- ご契約までの流れ\n\n---\n\n### 根拠にした社内資料\n- **価格**：価格承認記録（2026-11-24）で、月額100,000円から**120,000円に改定**が承認されています（承認者：佐藤さん）。10月28日の提案書v1には旧価格の100,000円が書かれたままなので、v1を使い回す場合は価格を差し替えてください。\n- **導入時期**：ヒアリングメモ（2026-11-25）に「稼働日程が未定のため導入時期は確定できない。次回打ち合わせで再確認」とあるため、日付は入れていません。\n\n### 確認してほしいこと\n- 社内資料では「エー社」と「A社」の両方の表記がありますが、同じ会社として扱いました。違う場合は教えてください。\n- 課題、サービスの中身、初期費用などは資料に記述がなかったため、空欄にしています。\n\nご希望であれば、この骨子をドキュメントやスライドにして本文まで書き起こせます。",
+      "calls": [
+        {
+          "name": "ToolSearch",
+          "input": {
+            "query": "select:mcp__shared-second-brain__search_documents,mcp__shared-second-brain__get_document",
+            "max_results": 2
+          }
+        },
+        {
+          "name": "search_documents",
+          "input": {
+            "query": "エー社 提案 価格 導入時期"
+          }
+        },
+        {
+          "name": "get_document",
+          "input": {
+            "id": "doc:2026-11-25-a-hearing"
+          }
+        },
+        {
+          "name": "get_document",
+          "input": {
+            "id": "doc:2026-10-28-a-proposal-v1"
+          }
+        },
+        {
+          "name": "get_document",
+          "input": {
+            "id": "doc:2026-11-24-a-price-approval"
+          }
+        }
+      ],
+      "costUsd": 0.0541526,
+      "inputTokens": 10,
+      "outputTokens": 1444,
+      "contextProjects": []
+    },
+    {
+      "id": "p1",
+      "run": 3,
+      "servers": {
+        "shared-second-brain": "connected"
+      },
+      "tools": [
+        "ToolSearch",
+        "search_documents",
+        "get_document",
+        "get_document",
+        "get_document"
+      ],
+      "calledContext": false,
+      "firstTool": "search_documents",
+      "answer": "エー社向け提案書の骨子を作りました。価格は11/24に承認された最新の月額120,000円（税別）です。導入時期は先方が未確定のため、日付は入れずに確認待ちとしています。\n\n---\n\n# 株式会社エー様向け 新サービスご提案書（骨子）\n\n## 1. 表紙\n- 宛先：株式会社エー 情報システム部 田中様\n- 提出日：2026年◯月◯日\n- 提出者：（自社名・担当者名）\n\n## 2. ご提案の背景\n- 貴社の現状の課題（ヒアリングで聞いた内容を入れる）\n- このサービスを提案する理由\n\n## 3. ご提案内容\n- サービスの概要\n- 主な機能と、貴社にとっての効果\n- 他の方法と比べた強み\n\n## 4. ご提案価格\n- **月額 120,000円（税別）**\n- 含まれる内容（サポート範囲、利用人数など）\n- 契約条件（契約期間、支払い方法など）\n\n## 5. 導入スケジュール\n- **導入時期：貴社の稼働日程が決まり次第、相談して決定**\n- 一般的な流れ（目安の期間は社内で決める必要あり）\n  1. ご契約\n  2. 導入準備・初期設定\n  3. テスト運用\n  4. 本稼働\n\n## 6. サポート体制\n- 導入時の支援、稼働後の問い合わせ窓口\n\n## 7. 次のステップ\n- 次回打ち合わせで、稼働日程と導入時期を確認したい\n\n---\n\n### 社内資料から分かったこと\n- **価格**：提案書v1（10/28）では月額100,000円でしたが、価格承認記録（11/24、佐藤さん承認）で月額120,000円に変わっています。骨子は新しい価格にしました。v1を使い回すときは、古い価格が残らないよう注意してください。\n- **導入時期**：11/25のヒアリングメモに「稼働日程が決まらないため導入時期は確定できない、次回打ち合わせで確認」とあります。先方の確認が取れていないので、具体的な日付は書いていません。\n- **社名の表記**：資料では「エー社」と「A社」の両方が使われています。同じ株式会社エーのことだと考えて進めました。\n\n日付の代わりに「契約から◯週間で本稼働」のような目安を入れたい場合は、社内で想定している期間を教えてもらえれば追記します。",
+      "calls": [
+        {
+          "name": "ToolSearch",
+          "input": {
+            "query": "select:mcp__shared-second-brain__search_documents,mcp__shared-second-brain__get_document",
+            "max_results": 2
+          }
+        },
+        {
+          "name": "search_documents",
+          "input": {
+            "query": "エー社 提案 価格 導入時期"
+          }
+        },
+        {
+          "name": "get_document",
+          "input": {
+            "id": "doc:2026-10-28-a-proposal-v1"
+          }
+        },
+        {
+          "name": "get_document",
+          "input": {
+            "id": "doc:2026-11-25-a-hearing"
+          }
+        },
+        {
+          "name": "get_document",
+          "input": {
+            "id": "doc:2026-11-24-a-price-approval"
+          }
+        }
+      ],
+      "costUsd": 0.0508938,
+      "inputTokens": 10,
+      "outputTokens": 1319,
+      "contextProjects": []
+    },
+    {
+      "id": "p2",
+      "run": 1,
+      "servers": {
+        "shared-second-brain": "connected"
+      },
+      "tools": [
+        "ToolSearch",
+        "search_documents"
+      ],
+      "calledContext": false,
+      "firstTool": "search_documents",
+      "answer": "A社の提案価格は**月額120,000円（税別）**で確定しています。\n\n- 根拠：「価格承認記録 A社 新サービス提案」（doc:2026-11-24-a-price-approval）\n- 2026年11月24日に営業責任者の佐藤さんが承認しました。\n- 承認前は月額100,000円でした。\n- 11月18日の定例会議では、機能追加の要望が増えたことを理由に12万円への値上げ案が出ていました。ただ、その場では結論が出ず、上記の承認で正式に決まっています。\n\nちなみに、11月25日のヒアリングメモを見ると、導入時期は先方の稼働日程が決まっていないため、まだ確定していません。",
+      "calls": [
+        {
+          "name": "ToolSearch",
+          "input": {
+            "query": "select:mcp__shared-second-brain__search_documents,mcp__shared-second-brain__get_document",
+            "max_results": 2
+          }
+        },
+        {
+          "name": "search_documents",
+          "input": {
+            "query": "A社 提案価格 確定"
+          }
+        }
+      ],
+      "costUsd": 0.0815496,
+      "inputTokens": 8,
+      "outputTokens": 470,
+      "contextProjects": []
+    },
+    {
+      "id": "p2",
+      "run": 2,
+      "servers": {
+        "shared-second-brain": "connected"
+      },
+      "tools": [
+        "ToolSearch",
+        "search_documents"
+      ],
+      "calledContext": false,
+      "firstTool": "search_documents",
+      "answer": "A社の新サービス提案の価格は、**月額120,000円（税別）**で確定しています。\n\n- **根拠**：「価格承認記録 A社 新サービス提案」（2026-11-24更新）\n- **改定前の価格**：月額100,000円\n- **適用日**：2026年11月24日\n- **承認者**：営業責任者の佐藤さん\n\n11/18の定例会議メモでは「12万円に上げたい」という意見が出ただけで、結論は出ていませんでした。その後、11/24に佐藤さんが承認して確定しています。\n\nなお、11/25のヒアリングメモによると、導入時期はまだ決まっていません。",
+      "calls": [
+        {
+          "name": "ToolSearch",
+          "input": {
+            "query": "select:mcp__shared-second-brain__search_documents,mcp__shared-second-brain__get_document",
+            "max_results": 2
+          }
+        },
+        {
+          "name": "search_documents",
+          "input": {
+            "query": "A社 提案価格 確定"
+          }
+        }
+      ],
+      "costUsd": 0.024165400000000004,
+      "inputTokens": 8,
+      "outputTokens": 424,
+      "contextProjects": []
+    },
+    {
+      "id": "p2",
+      "run": 3,
+      "servers": {
+        "shared-second-brain": "connected"
+      },
+      "tools": [
+        "ToolSearch",
+        "search_documents"
+      ],
+      "calledContext": false,
+      "firstTool": "search_documents",
+      "answer": "A社の提案価格は**月額120,000円（税別）**で確定しています。\n\n- 根拠：「価格承認記録 A社 新サービス提案」（doc:2026-11-24-a-price-approval、2026-11-24更新）\n- 旧価格は月額100,000円で、2026年11月24日付で改定されました。\n- 承認者は営業責任者の佐藤さんです。\n\n11月18日の定例会議では「12万円に上げたい」という意見が出ていましたが、承認が必要なのでその場では決まっていませんでした。上の承認記録で正式に決まった形です。ただ、導入時期のほうはまだ決まっていません（11月25日のヒアリングメモより）。",
+      "calls": [
+        {
+          "name": "ToolSearch",
+          "input": {
+            "query": "select:mcp__shared-second-brain__search_documents,mcp__shared-second-brain__get_document",
+            "max_results": 2
+          }
+        },
+        {
+          "name": "search_documents",
+          "input": {
+            "query": "A社 提案価格 確定"
+          }
+        }
+      ],
+      "costUsd": 0.025024400000000002,
+      "inputTokens": 8,
+      "outputTokens": 469,
+      "contextProjects": []
+    },
+    {
+      "id": "p3",
+      "run": 1,
+      "servers": {
+        "shared-second-brain": "connected"
+      },
+      "tools": [
+        "ToolSearch",
+        "search_documents",
+        "get_document"
+      ],
+      "calledContext": false,
+      "firstTool": "search_documents",
+      "answer": "社内資料（11/25のヒアリングメモ、10/20のキックオフ議事録）の内容を踏まえてメールを書きました。田中様からは昨日「稼働日程が決まらないので導入時期はまだ確定できない」と聞いているため、決まった時期を求める書き方は避けました。代わりに、日程が決まる見込みと、次の打ち合わせの候補日を伺う内容にしています。\n\n---\n\n**件名：** 新サービス導入時期のご相談について\n\n株式会社エー\n情報システム部　田中様\n\nいつもお世話になっております。\n〇〇株式会社の〇〇です。\n\n昨日はお忙しい中、お打ち合わせのお時間をいただき誠にありがとうございました。\n\nお打ち合わせでは、稼働日程がまだ決まっていないため、導入時期は確定できないと伺いました。\n弊社では、日程が決まり次第すぐに準備を始められるよう、社内の体制を整えております。\n\nつきましては、差し支えのない範囲で、以下2点を教えていただけますと幸いです。\n\n1. 稼働日程が決まる見込みの時期（おおよそで構いません）\n2. 次回お打ち合わせの候補日時\n\n導入時期は、田中様のご都合に合わせて調整いたしますので、どうぞお気軽にご相談ください。\nご不明な点がございましたら、お気軽にお問い合わせください。\n\n引き続きどうぞよろしくお願いいたします。\n\n---\n〇〇株式会社\n〇〇部　〇〇\nTEL：〇〇　／　Mail：〇〇\n\n---\n\n**送る前に埋めていただきたいところ**\n- 差出人の会社名・氏名・署名は分からなかったので「〇〇」のままです。議事録によると当社からは佐藤さん（営業責任者）と鈴木さんが出席しています。\n- 本文の「昨日」は、ヒアリングの日付（2026-11-25）から決めました。送る日が後になる場合は「先日」に直してください。\n\nもっとくだけた言い方にしたい場合や、次回打ち合わせの候補日を当社から出す形にしたい場合は、言っていただければ直します。",
+      "calls": [
+        {
+          "name": "ToolSearch",
+          "input": {
+            "query": "select:mcp__shared-second-brain__search_documents,mcp__shared-second-brain__get_document",
+            "max_results": 2
+          }
+        },
+        {
+          "name": "search_documents",
+          "input": {
+            "query": "株式会社エー 田中 導入時期"
+          }
+        },
+        {
+          "name": "get_document",
+          "input": {
+            "id": "doc:2026-11-25-a-hearing"
+          }
+        }
+      ],
+      "costUsd": 0.100203,
+      "inputTokens": 10,
+      "outputTokens": 1152,
+      "contextProjects": []
+    },
+    {
+      "id": "p3",
+      "run": 2,
+      "servers": {
+        "shared-second-brain": "connected"
+      },
+      "tools": [
+        "ToolSearch",
+        "search_documents",
+        "get_document"
+      ],
+      "calledContext": false,
+      "firstTool": "search_documents",
+      "answer": "株式会社エーの田中様宛ての、導入時期を確認するメールの下書きです。\n\n---\n\n**件名：** 新サービス導入時期のご確認\n\n株式会社エー\n情報システム部　田中様\n\nいつも大変お世話になっております。\n〇〇株式会社の【お名前】でございます。\n\n先日はヒアリングのお時間をいただき、誠にありがとうございました。\n\nご提案している新サービス（社内問い合わせ対応の自動化）の導入時期について、確認させていただきたくご連絡いたしました。\n\n先日のお打ち合わせでは、稼働日程がまだお決まりでないと伺っております。\n今のところ、導入をお考えの時期の目安はございますでしょうか。\n「〇月頃」「〇〇の後」といった大まかなもので構いません。\n\n目安をお知らせいただければ、こちらで準備のスケジュールを立て、田中様のご都合に合わせて調整いたします。\nまだお決まりでない場合は、次回のお打ち合わせで改めてご相談させていただければ幸いです。\n\nお忙しいところ恐れ入りますが、よろしくお願いいたします。\n\n---\n【署名】\n\n---\n\n**内容の確認をお願いしたい点**\n- 下書きは社内資料3件をもとにしています。11/25のヒアリングメモ、10/20のキックオフ議事録、10/28の提案書v1です。\n- 11/25のヒアリングで、田中様は稼働日程が決まっていないため導入時期は確定できないとおっしゃっていました。そのため、確定した日付ではなく大まかな目安を伺う書き方にしています。\n- メモには「次回打ち合わせで改めて確認する」とあります。前回の打ち合わせから1日しか経っていないので、今メールを送るか、次回の打ち合わせまで待つかをご検討ください。\n- 社名、お名前、署名は資料からわからなかったので、空欄にしています。\n\nもっとくだけた文面や、短いバージョンもお作りできます。",
+      "calls": [
+        {
+          "name": "ToolSearch",
+          "input": {
+            "query": "select:mcp__shared-second-brain__search_documents,mcp__shared-second-brain__get_document",
+            "max_results": 2
+          }
+        },
+        {
+          "name": "search_documents",
+          "input": {
+            "query": "株式会社エー 田中 導入時期"
+          }
+        },
+        {
+          "name": "get_document",
+          "input": {
+            "id": "doc:2026-11-25-a-hearing"
+          }
+        }
+      ],
+      "costUsd": 0.0416628,
+      "inputTokens": 10,
+      "outputTokens": 1056,
+      "contextProjects": []
+    },
+    {
+      "id": "p3",
+      "run": 3,
+      "servers": {
+        "shared-second-brain": "connected"
+      },
+      "tools": [
+        "ToolSearch",
+        "search_documents",
+        "get_document"
+      ],
+      "calledContext": false,
+      "firstTool": "search_documents",
+      "answer": "株式会社エーの田中様宛ての確認メールの下書きです。\n\n---\n\n**件名：** 新サービス導入時期のご確認\n\n株式会社エー\n情報システム部 田中様\n\nいつもお世話になっております。\n〇〇株式会社の〇〇でございます。\n\n先日はヒアリングのお時間をいただき、誠にありがとうございました。\n\nその際、御社の稼働日程がまだ決まっておらず、導入時期は確定できないと伺いました。\n差し支えなければ、現時点での見通しを教えていただけますでしょうか。\n「〇月頃」といったおおよその時期でも構いません。\n\nご契約後の導入スケジュールは、御社のご都合に合わせて調整いたします。\nまだ見通しが立たない場合は、次回のお打ち合わせで改めてご相談させていただければ幸いです。\n\nお忙しいところ恐れ入りますが、よろしくお願いいたします。\n\n---\n〇〇株式会社 〇〇部\n〇〇 〇〇\nTEL：〇〇-〇〇〇〇-〇〇〇〇\nMail：〇〇@〇〇\n\n---\n\n**作成の根拠にした社内資料**\n- 11/25のヒアリングメモ：田中様は情報システム部の方です。稼働日程がまだ決まらないため、導入時期は確定できないとのことでした。次回の打ち合わせで改めて確認する予定になっています。\n- 提案書と10/20のキックオフ議事録：納期は先方の都合に合わせて調整する方針です。\n\n田中様からは昨日、導入時期はまだ決められないと伺ったばかりです。そのため、時期の確定を急かす文面ではなく、おおよその見通しを伺う内容にしました。〇〇の部分には、送信者のお名前と連絡先を入れてください。\n\nヒアリングメモでは次回の打ち合わせで確認する予定になっています。打ち合わせが近い場合は、メールを送らずにそこで伺う方法もあります。",
+      "calls": [
+        {
+          "name": "ToolSearch",
+          "input": {
+            "query": "select:mcp__shared-second-brain__search_documents,mcp__shared-second-brain__get_document",
+            "max_results": 2
+          }
+        },
+        {
+          "name": "search_documents",
+          "input": {
+            "query": "株式会社エー 田中 導入時期"
+          }
+        },
+        {
+          "name": "get_document",
+          "input": {
+            "id": "doc:2026-11-25-a-hearing"
+          }
+        }
+      ],
+      "costUsd": 0.040844,
+      "inputTokens": 10,
+      "outputTokens": 1018,
+      "contextProjects": []
+    },
+    {
+      "id": "p4",
+      "run": 1,
+      "servers": {
+        "shared-second-brain": "connected"
+      },
+      "tools": [
+        "ToolSearch",
+        "search_documents",
+        "get_document",
+        "get_document"
+      ],
+      "calledContext": false,
+      "firstTool": "search_documents",
+      "answer": "社内資料をもとに、A社の田中様あての見積送付メールを下書きしました。\n\n---\n\n**件名：** 社内問い合わせ対応自動化サービスのお見積りのご送付\n\n株式会社エー\n情報システム部　田中様\n\nいつもお世話になっております。\n〇〇株式会社の【差出人名】です。\n\n先日はお打ち合わせのお時間をいただき、ありがとうございました。\nご相談いただいた社内問い合わせ対応の自動化について、お見積りをお送りします。\n\n**■ お見積り概要**\n・サービス内容：社内問い合わせ対応自動化サービス\n・ご利用料金：月額 100,000円（税別）\n・導入時期：御社の稼働日程が決まりしだい、ご相談のうえ決めさせてください\n\n詳しくは添付のお見積書をご覧ください。\n\n導入時期については、次回のお打ち合わせで改めて伺えれば幸いです。\n内容についてご不明な点やご要望がありましたら、お気軽にお知らせください。\n\n引き続きよろしくお願いいたします。\n\n---\n【署名】\n\n---\n\n**送る前に確認してほしいこと**\n\n- **会社名：** 10/20のキックオフ議事録は「A社」、11/25のヒアリングメモは「株式会社エー」と書かれています。担当がどちらも田中様なので同じ会社とみなしましたが、念のため正しい社名を確認してください。\n- **料金：** 資料にあったのは「月額10万円のプランで提案する方針」だけです。税込か税別か、初期費用があるか、契約期間は記載がなかったので、「税別」は仮に入れています。\n- **納期：** どちらの資料でも「未定」となっていたため、具体的な日付は書いていません。\n- **差出人名・署名・見積書の添付**は、あとで入れてください。\n\n追加したいことや、文面の調子を変えたい箇所があれば直します。",
+      "calls": [
+        {
+          "name": "ToolSearch",
+          "input": {
+            "query": "select:mcp__shared-second-brain__search_documents,mcp__shared-second-brain__get_document",
+            "max_results": 2
+          }
+        },
+        {
+          "name": "search_documents",
+          "input": {
+            "query": "田中さん 見積"
+          }
+        },
+        {
+          "name": "get_document",
+          "input": {
+            "id": "doc:2026-10-20-a-kickoff"
+          }
+        },
+        {
+          "name": "get_document",
+          "input": {
+            "id": "doc:2026-11-25-a-hearing"
+          }
+        }
+      ],
+      "costUsd": 0.101054,
+      "inputTokens": 10,
+      "outputTokens": 1101,
+      "contextProjects": []
+    },
+    {
+      "id": "p4",
+      "run": 2,
+      "servers": {
+        "shared-second-brain": "connected"
+      },
+      "tools": [
+        "ToolSearch",
+        "search_documents",
+        "get_document",
+        "get_document"
+      ],
+      "calledContext": false,
+      "firstTool": "search_documents",
+      "answer": "社内資料を確認して下書きを作りました。\n\n---\n\n**件名：** 問い合わせ対応自動化サービスのお見積りについて\n\n株式会社エー\n情報システム部 田中様\n\nいつもお世話になっております。\n〇〇株式会社の【お名前】です。\n\n先日はお打ち合わせのお時間をいただき、ありがとうございました。\nご相談いただいている社内の問い合わせ対応の自動化について、お見積りをお送りします。\n\n■ お見積り概要\n・ご提案プラン：月額プラン\n・ご利用料金：月額 100,000円（【税抜／税込】）\n・導入時期：御社の稼働日程が決まり次第、調整させていただきます\n\n導入時期は、御社のご予定が固まった段階で改めてご相談させてください。\n次回のお打ち合わせで、稼働日程についてもあわせてお伺いできれば幸いです。\n\n詳細は添付の見積書をご確認ください。\nご不明な点がありましたら、お気軽にお問い合わせください。\n\n引き続きよろしくお願いいたします。\n\n【署名】\n\n---\n\n**送る前に確認してほしい点**\n- **内容の根拠：** 10月20日のキックオフ議事録（月額10万円で提案する方針、納期は未定）と、11月25日のヒアリングメモ（導入時期はまだ決められない、次回の打ち合わせで改めて確認）をもとにしました。\n- **税抜か税込か：** 資料に書かれていなかったので、【　】のまま残しています。初期費用や契約期間についても資料に記載がなかったため、入れていません。必要なら追加してください。\n- **差出人の名前・署名・会社名：** 【　】や「〇〇」のまま残しています。\n- **添付の見積書：** 添付する前提の文面にしています。本文だけで送る場合は「詳細は添付の〜」の一文を削ってください。\n- **宛先の会社名：** 資料には「エー社」と「A社」の両方の表記がありましたが、同じ会社として扱い、ヒアリングメモにある「株式会社エー」で書いています。\n\nもっと丁寧にしたい、短くしたいなど、調整したい点があれば言ってください。",
+      "calls": [
+        {
+          "name": "ToolSearch",
+          "input": {
+            "query": "select:mcp__shared-second-brain__search_documents,mcp__shared-second-brain__get_document",
+            "max_results": 2
+          }
+        },
+        {
+          "name": "search_documents",
+          "input": {
+            "query": "田中さん 見積"
+          }
+        },
+        {
+          "name": "get_document",
+          "input": {
+            "id": "doc:2026-11-25-a-hearing"
+          }
+        },
+        {
+          "name": "get_document",
+          "input": {
+            "id": "doc:2026-10-20-a-kickoff"
+          }
+        }
+      ],
+      "costUsd": 0.0456118,
+      "inputTokens": 10,
+      "outputTokens": 1167,
+      "contextProjects": []
+    },
+    {
+      "id": "p4",
+      "run": 3,
+      "servers": {
+        "shared-second-brain": "connected"
+      },
+      "tools": [
+        "ToolSearch",
+        "search_documents",
+        "get_document",
+        "get_document"
+      ],
+      "calledContext": false,
+      "firstTool": "search_documents",
+      "answer": "社内資料（10/20のキックオフ議事録、11/25のヒアリングメモ）をもとにメールの下書きを作りました。\n\n---\n\n**件名：** 社内問い合わせ対応自動化サービスのお見積りについて\n\n株式会社エー\n情報システム部 田中様\n\nいつもお世話になっております。\n〇〇株式会社の【お名前】です。\n\n先日はヒアリングのお時間をいただき、ありがとうございました。\n社内の問い合わせ対応を自動化するサービスについて、お見積りをお送りします。\n\n■お見積り概要\n・ご提案プラン：月額 100,000円（【税抜／税込】）\n・初期費用：【有無・金額】\n・契約期間：【例：12か月】\n\n■導入時期について\n先日のお打ち合わせで伺ったとおり、貴社の稼働日程が決まりましたら、それに合わせて導入スケジュールと納期をご相談させてください。\n次回のお打ち合わせで改めて確認させていただければ幸いです。\n\n詳しい内訳は添付の見積書をご確認ください。\nご不明な点がありましたら、お気軽にお問い合わせください。\n\n引き続きよろしくお願いいたします。\n\n【署名】\n\n---\n\n**送る前に確認が必要な点**\n- **金額**：「月額10万円」は10/20のキックオフで決めた提案の方針です。その後の資料に正式な見積額は見当たらなかったので、この金額で確定しているか佐藤さんに確認したほうが安全です。\n- **【】の部分**：税抜か税込か、初期費用、契約期間は資料に書かれていなかったので空けてあります。\n- **納期**：11/25のヒアリングでも未定のままだったため、メールには日付を書かず「稼働日程が決まってから調整」としています。\n- **会社名の表記**：資料では「A社」と「株式会社エー」の両方が使われています。正式な社名を確認してください。\n\n金額や条件を教えていただければ、【】を埋めた完成版にします。",
+      "calls": [
+        {
+          "name": "ToolSearch",
+          "input": {
+            "query": "select:mcp__shared-second-brain__search_documents,mcp__shared-second-brain__get_document",
+            "max_results": 2
+          }
+        },
+        {
+          "name": "search_documents",
+          "input": {
+            "query": "田中 見積"
+          }
+        },
+        {
+          "name": "get_document",
+          "input": {
+            "id": "doc:2026-11-25-a-hearing"
+          }
+        },
+        {
+          "name": "get_document",
+          "input": {
+            "id": "doc:2026-10-20-a-kickoff"
+          }
+        }
+      ],
+      "costUsd": 0.0440122,
+      "inputTokens": 10,
+      "outputTokens": 1087,
+      "contextProjects": []
+    }
+  ]
+}

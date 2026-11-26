@@ -1,0 +1,67 @@
+{
+  "manifest_version": "0.3",
+  "name": "coheads",
+  "display_name": "Coheads",
+  "version": "0.3.6",
+  "description": "チームの「いま有効な決定」と資料を、AIに正しく渡す社内メモリ。古い価格や未確定の事項を、現行として書かせません。",
+  "long_description": "Coheads は、指定したフォルダの資料と、承認された決定の記録（決定台帳）をもとに、AIへ「現行の決定」「失効した旧決定」「未確定の事項」と注釈つきの資料を返します。フォルダの中のフォルダが1つずつ案件になります。Googleドライブなどの共有フォルダを選ぶと、決定の候補と承認がフォルダの中（.coheads）に記録され、同じフォルダを選んだメンバーのCoheadsにも反映されます。承認は、このパソコンの承認ページ（http://127.0.0.1:4319/）で人が行います。AIは候補を出すだけです。承認できる人を決めたいときは、フォルダの .coheads/team.json に {\"approvers\": [\"名前\"]} と書きます。資料フォルダを空のままにすると、架空の取引先（A社・B社）のデモデータで試せます。資料の索引はこのパソコンの中にだけ保存されます。",
+  "author": {
+    "name": "WalkOn（株式会社銭内堂）"
+  },
+  "license": "Apache-2.0",
+  "server": {
+    "type": "node",
+    "entry_point": "server/mcp.js",
+    "mcp_config": {
+      "command": "node",
+      "args": [
+        "${__dirname}/server/mcp.js"
+      ],
+      "env": {
+        "SB_FOLDER": "${user_config.folder}",
+        "SB_USER": "${user_config.user_name}",
+        "SB_DATA_DIR": "${HOME}/.coheads",
+        "SB_CORPUS_DIR": "${__dirname}/server/demo-corpus",
+        "SB_DESTINATION": "claude-desktop"
+      }
+    }
+  },
+  "tools": [
+    {
+      "name": "get_context",
+      "description": "取引先・案件の現行の決定、失効した旧決定、未確定事項、関連資料を取得する"
+    },
+    {
+      "name": "get_document",
+      "description": "資料のIDから本文を取得する"
+    },
+    {
+      "name": "propose_decision",
+      "description": "会話で出た新しい決定を候補として登録する（承認は人が行う）"
+    }
+  ],
+  "user_config": {
+    "folder": {
+      "type": "directory",
+      "title": "資料フォルダ",
+      "description": "中のフォルダが1つずつ案件になります（.md と .txt を読みます）。チームで使うときは、全員が同じ共有フォルダ（Googleドライブなど）を選びます。空のままにすると、架空のデモデータで試せます。",
+      "required": false
+    },
+    "user_name": {
+      "type": "string",
+      "title": "あなたの名前",
+      "description": "承認や候補の記録に使う名前です。チームで使うときは、メンバーごとに違う名前にしてください。",
+      "default": "me",
+      "required": false
+    }
+  },
+  "compatibility": {
+    "platforms": [
+      "darwin",
+      "win32"
+    ],
+    "runtimes": {
+      "node": ">=20.0.0"
+    }
+  }
+}

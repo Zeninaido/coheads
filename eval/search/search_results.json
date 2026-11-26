@@ -1,0 +1,552 @@
+{
+  "results": [
+    {
+      "id": "q01",
+      "query": "A社の提案価格はいくら？",
+      "category": "自然文",
+      "primary": "2026-11-24-a-price-approval",
+      "gbrain": {
+        "top": [],
+        "rank": null
+      },
+      "fts_simple": {
+        "top": [],
+        "rank": null
+      },
+      "trgm": {
+        "top": [
+          "2026-10-20-a-kickoff",
+          "2026-10-28-a-proposal-v1",
+          "2026-11-18-a-weekly",
+          "2026-11-24-a-price-approval"
+        ],
+        "rank": 4
+      },
+      "bigm": {
+        "top": [
+          "2026-10-28-a-proposal-v1",
+          "2026-11-18-a-weekly",
+          "2026-11-24-a-price-approval",
+          "2026-10-20-a-kickoff"
+        ],
+        "rank": 3
+      },
+      "bigm_norm": {
+        "top": [
+          "2026-10-28-a-proposal-v1",
+          "2026-11-18-a-weekly",
+          "2026-11-24-a-price-approval",
+          "2026-10-20-a-kickoff",
+          "2026-11-25-a-hearing"
+        ],
+        "rank": 3
+      }
+    },
+    {
+      "id": "q02",
+      "query": "提案価格",
+      "category": "単語",
+      "primary": "2026-11-24-a-price-approval",
+      "gbrain": {
+        "top": [
+          "2026-10-28-a-proposal-v1",
+          "2026-11-24-a-price-approval",
+          "2026-11-18-a-weekly"
+        ],
+        "rank": 2
+      },
+      "fts_simple": {
+        "top": [],
+        "rank": null
+      },
+      "trgm": {
+        "top": [
+          "2026-11-18-a-weekly",
+          "2026-11-24-a-price-approval",
+          "2026-10-28-a-proposal-v1"
+        ],
+        "rank": 2
+      },
+      "bigm": {
+        "top": [
+          "2026-10-28-a-proposal-v1",
+          "2026-11-18-a-weekly",
+          "2026-11-24-a-price-approval",
+          "2026-10-20-a-kickoff"
+        ],
+        "rank": 3
+      },
+      "bigm_norm": {
+        "top": [
+          "2026-10-28-a-proposal-v1",
+          "2026-11-18-a-weekly",
+          "2026-11-24-a-price-approval",
+          "2026-10-20-a-kickoff"
+        ],
+        "rank": 3
+      }
+    },
+    {
+      "id": "q03",
+      "query": "120,000円",
+      "category": "数値",
+      "primary": "2026-11-24-a-price-approval",
+      "gbrain": {
+        "top": [
+          "2026-11-24-a-price-approval"
+        ],
+        "rank": 1
+      },
+      "fts_simple": {
+        "top": [],
+        "rank": null
+      },
+      "trgm": {
+        "top": [
+          "2026-11-24-a-price-approval",
+          "2026-10-28-a-proposal-v1",
+          "2026-11-10-b-estimate"
+        ],
+        "rank": 1
+      },
+      "bigm": {
+        "top": [
+          "2026-11-24-a-price-approval",
+          "2026-10-28-a-proposal-v1",
+          "2026-11-10-b-estimate",
+          "2026-11-18-a-weekly",
+          "2026-11-20-b-minutes"
+        ],
+        "rank": 1
+      },
+      "bigm_norm": {
+        "top": [
+          "2026-11-18-a-weekly",
+          "2026-11-24-a-price-approval",
+          "2026-11-20-b-minutes",
+          "2026-10-20-a-kickoff",
+          "2026-10-28-a-proposal-v1"
+        ],
+        "rank": 2
+      }
+    },
+    {
+      "id": "q04",
+      "query": "12万円",
+      "category": "表記ゆれ",
+      "primary": "2026-11-24-a-price-approval",
+      "gbrain": {
+        "top": [
+          "2026-11-18-a-weekly"
+        ],
+        "rank": null
+      },
+      "fts_simple": {
+        "top": [],
+        "rank": null
+      },
+      "trgm": {
+        "top": [
+          "2026-11-18-a-weekly",
+          "2026-10-28-a-proposal-v1"
+        ],
+        "rank": null
+      },
+      "bigm": {
+        "top": [
+          "2026-11-18-a-weekly",
+          "2026-10-20-a-kickoff",
+          "2026-11-24-a-price-approval"
+        ],
+        "rank": 3
+      },
+      "bigm_norm": {
+        "top": [
+          "2026-11-18-a-weekly",
+          "2026-11-24-a-price-approval",
+          "2026-11-20-b-minutes",
+          "2026-10-20-a-kickoff",
+          "2026-10-28-a-proposal-v1"
+        ],
+        "rank": 2
+      }
+    },
+    {
+      "id": "q05",
+      "query": "エー社の導入時期は決まった？",
+      "category": "別名＋自然文",
+      "primary": "2026-11-25-a-hearing",
+      "gbrain": {
+        "top": [],
+        "rank": null
+      },
+      "fts_simple": {
+        "top": [],
+        "rank": null
+      },
+      "trgm": {
+        "top": [
+          "2026-11-25-a-hearing"
+        ],
+        "rank": 1
+      },
+      "bigm": {
+        "top": [
+          "2026-11-25-a-hearing",
+          "2026-10-20-a-kickoff",
+          "2026-11-20-b-minutes",
+          "2026-10-28-a-proposal-v1"
+        ],
+        "rank": 1
+      },
+      "bigm_norm": {
+        "top": [
+          "2026-11-25-a-hearing",
+          "2026-10-20-a-kickoff",
+          "2026-11-20-b-minutes",
+          "2026-10-28-a-proposal-v1",
+          "2026-11-18-a-weekly"
+        ],
+        "rank": 1
+      }
+    },
+    {
+      "id": "q06",
+      "query": "A社の納期",
+      "category": "言い換え",
+      "primary": "2026-11-25-a-hearing",
+      "gbrain": {
+        "top": [],
+        "rank": null
+      },
+      "fts_simple": {
+        "top": [],
+        "rank": null
+      },
+      "trgm": {
+        "top": [
+          "2026-10-20-a-kickoff",
+          "2026-10-28-a-proposal-v1",
+          "2026-11-18-a-weekly",
+          "2026-11-24-a-price-approval"
+        ],
+        "rank": null
+      },
+      "bigm": {
+        "top": [
+          "2026-10-20-a-kickoff",
+          "2026-11-20-b-minutes",
+          "2026-10-28-a-proposal-v1",
+          "2026-11-18-a-weekly",
+          "2026-11-24-a-price-approval"
+        ],
+        "rank": null
+      },
+      "bigm_norm": {
+        "top": [
+          "2026-10-20-a-kickoff",
+          "2026-11-20-b-minutes",
+          "2026-10-28-a-proposal-v1",
+          "2026-11-18-a-weekly",
+          "2026-11-24-a-price-approval"
+        ],
+        "rank": null
+      }
+    },
+    {
+      "id": "q07",
+      "query": "価格改定を承認したのは誰",
+      "category": "自然文",
+      "primary": "2026-11-24-a-price-approval",
+      "gbrain": {
+        "top": [],
+        "rank": null
+      },
+      "fts_simple": {
+        "top": [],
+        "rank": null
+      },
+      "trgm": {
+        "top": [
+          "2026-11-24-a-price-approval"
+        ],
+        "rank": 1
+      },
+      "bigm": {
+        "top": [
+          "2026-11-24-a-price-approval",
+          "2026-11-18-a-weekly",
+          "2026-10-20-a-kickoff",
+          "2026-10-28-a-proposal-v1"
+        ],
+        "rank": 1
+      },
+      "bigm_norm": {
+        "top": [
+          "2026-11-24-a-price-approval",
+          "2026-11-18-a-weekly",
+          "2026-10-20-a-kickoff",
+          "2026-10-28-a-proposal-v1"
+        ],
+        "rank": 1
+      }
+    },
+    {
+      "id": "q08",
+      "query": "値上げ",
+      "category": "単語",
+      "primary": "2026-11-18-a-weekly",
+      "gbrain": {
+        "top": [
+          "2026-11-18-a-weekly"
+        ],
+        "rank": 1
+      },
+      "fts_simple": {
+        "top": [],
+        "rank": null
+      },
+      "trgm": {
+        "top": [
+          "2026-11-18-a-weekly"
+        ],
+        "rank": 1
+      },
+      "bigm": {
+        "top": [
+          "2026-11-18-a-weekly"
+        ],
+        "rank": 1
+      },
+      "bigm_norm": {
+        "top": [
+          "2026-11-18-a-weekly"
+        ],
+        "rank": 1
+      }
+    },
+    {
+      "id": "q09",
+      "query": "株式会社エー 担当者",
+      "category": "空白区切り",
+      "primary": "2026-11-25-a-hearing",
+      "gbrain": {
+        "top": [
+          "2026-11-25-a-hearing"
+        ],
+        "rank": 1
+      },
+      "fts_simple": {
+        "top": [],
+        "rank": null
+      },
+      "trgm": {
+        "top": [
+          "2026-11-25-a-hearing"
+        ],
+        "rank": 1
+      },
+      "bigm": {
+        "top": [
+          "2026-11-25-a-hearing"
+        ],
+        "rank": 1
+      },
+      "bigm_norm": {
+        "top": [
+          "2026-11-25-a-hearing",
+          "2026-10-20-a-kickoff",
+          "2026-10-28-a-proposal-v1",
+          "2026-11-18-a-weekly",
+          "2026-11-24-a-price-approval"
+        ],
+        "rank": 1
+      }
+    },
+    {
+      "id": "q10",
+      "query": "月額料金",
+      "category": "言い換え",
+      "primary": "2026-11-24-a-price-approval",
+      "gbrain": {
+        "top": [],
+        "rank": null
+      },
+      "fts_simple": {
+        "top": [],
+        "rank": null
+      },
+      "trgm": {
+        "top": [
+          "2026-10-28-a-proposal-v1",
+          "2026-11-24-a-price-approval"
+        ],
+        "rank": 2
+      },
+      "bigm": {
+        "top": [
+          "2026-10-20-a-kickoff",
+          "2026-10-28-a-proposal-v1",
+          "2026-11-24-a-price-approval"
+        ],
+        "rank": 3
+      },
+      "bigm_norm": {
+        "top": [
+          "2026-10-20-a-kickoff",
+          "2026-10-28-a-proposal-v1",
+          "2026-11-24-a-price-approval"
+        ],
+        "rank": 3
+      }
+    },
+    {
+      "id": "q11",
+      "query": "キックオフ",
+      "category": "単語",
+      "primary": "2026-10-20-a-kickoff",
+      "gbrain": {
+        "top": [
+          "2026-10-20-a-kickoff"
+        ],
+        "rank": 1
+      },
+      "fts_simple": {
+        "top": [],
+        "rank": null
+      },
+      "trgm": {
+        "top": [
+          "2026-10-20-a-kickoff"
+        ],
+        "rank": 1
+      },
+      "bigm": {
+        "top": [
+          "2026-10-20-a-kickoff"
+        ],
+        "rank": 1
+      },
+      "bigm_norm": {
+        "top": [
+          "2026-10-20-a-kickoff"
+        ],
+        "rank": 1
+      }
+    },
+    {
+      "id": "q12",
+      "query": "B社の見積額",
+      "category": "自然文",
+      "primary": "2026-11-10-b-estimate",
+      "gbrain": {
+        "top": [],
+        "rank": null
+      },
+      "fts_simple": {
+        "top": [],
+        "rank": null
+      },
+      "trgm": {
+        "top": [
+          "2026-11-10-b-estimate",
+          "2026-11-20-b-minutes"
+        ],
+        "rank": 1
+      },
+      "bigm": {
+        "top": [
+          "2026-11-10-b-estimate",
+          "2026-11-20-b-minutes"
+        ],
+        "rank": 1
+      },
+      "bigm_norm": {
+        "top": [
+          "2026-11-10-b-estimate",
+          "2026-11-20-b-minutes"
+        ],
+        "rank": 1
+      }
+    }
+  ],
+  "summary": {
+    "gbrain": {
+      "top1": 4,
+      "top3": 5,
+      "zero_hit": 6,
+      "n": 12
+    },
+    "fts_simple": {
+      "top1": 0,
+      "top3": 0,
+      "zero_hit": 12,
+      "n": 12
+    },
+    "trgm": {
+      "top1": 7,
+      "top3": 9,
+      "zero_hit": 0,
+      "n": 12
+    },
+    "bigm": {
+      "top1": 7,
+      "top3": 11,
+      "zero_hit": 0,
+      "n": 12
+    },
+    "bigm_norm": {
+      "top1": 6,
+      "top3": 11,
+      "zero_hit": 0,
+      "n": 12
+    }
+  },
+  "scope_checks": [
+    {
+      "method": "gbrain",
+      "query": "B社の見積額",
+      "scope": [
+        "a-sha"
+      ],
+      "returned": [],
+      "leaked_b": []
+    },
+    {
+      "method": "fts_simple",
+      "query": "B社の見積額",
+      "scope": [
+        "a-sha"
+      ],
+      "returned": [],
+      "leaked_b": []
+    },
+    {
+      "method": "trgm",
+      "query": "B社の見積額",
+      "scope": [
+        "a-sha"
+      ],
+      "returned": [],
+      "leaked_b": []
+    },
+    {
+      "method": "bigm",
+      "query": "B社の見積額",
+      "scope": [
+        "a-sha"
+      ],
+      "returned": [],
+      "leaked_b": []
+    },
+    {
+      "method": "bigm_norm",
+      "query": "B社の見積額",
+      "scope": [
+        "a-sha"
+      ],
+      "returned": [],
+      "leaked_b": []
+    }
+  ]
+}

@@ -1,0 +1,814 @@
+{
+  "label": "base-real",
+  "decoys": true,
+  "names": true,
+  "user": "suzuki",
+  "n": 3,
+  "runs": [
+    {
+      "id": "p1",
+      "run": 1,
+      "servers": {
+        "shared-second-brain": "connected",
+        "workspace-apps": "connected"
+      },
+      "tools": [
+        "ToolSearch",
+        "get_context",
+        "get_document",
+        "get_document"
+      ],
+      "calledContext": true,
+      "firstTool": "get_context",
+      "answer": "A社（エー社）向け提案書の骨子です。\n\n---\n\n# 株式会社エー様向け 新サービスご提案書（骨子案）\n\n## 1. 表紙\n- タイトル：社内問い合わせ対応 自動化サービスのご提案\n- 宛先：株式会社エー 情報システム部 田中様\n- 提出日／提出者：（当社 営業責任者 佐藤、鈴木）\n\n## 2. はじめに\n- ヒアリングのお礼\n- この提案の目的：社内の問い合わせ対応の自動化\n\n## 3. 現状と課題\n- 社内問い合わせ対応の現状（件数、対応している体制、かかっている工数）\n- 課題の整理 ※ヒアリング内容で補う\n\n## 4. ご提案内容\n- サービス概要\n- 主な機能\n- 導入後のイメージ（問い合わせの流れのビフォー／アフター）\n\n## 5. 導入効果\n- 工数削減の見込み\n- 回答の品質と速さの向上\n- 定量効果の試算 ※根拠となる数値は要確認\n\n## 6. ご提案価格\n- **月額 120,000円（税別）**\n- 料金に含まれる範囲、オプション、契約期間 ※要確定\n\n## 7. 導入スケジュール\n- **導入時期：未定（貴社の稼働日程が決まり次第、調整いたします）**\n- 標準的な進め方：ご契約 → 初期設定 → 試験運用 → 本稼働（各フェーズの目安期間は要確定）\n\n## 8. サポート体制\n- 導入時の支援と運用中の支援\n- 窓口と担当者\n\n## 9. 次のステップ\n- 次回の打ち合わせで稼働日程を確認\n- お見積書の提出 → ご契約\n\n---\n\n**注意点**\n- **価格**：既存の提案書v1（10/28）とキックオフ議事録（10/20）には「月額10万円」とありますが、これは11/24に古い決定になりました。今の価格は月額120,000円（税別）で、11/24に承認されています（出典：A社案件 決定台帳、2026-11-24承認）。v1を流用するなら、金額を必ず差し替えてください。\n- **導入時期**：まだ決まっていません。11/25のヒアリングで、田中様から「稼働日程が決まらないため導入時期は確定できない」と伺っています。そのため、具体的な日付は書かずに「調整中」としました。次回の打ち合わせで確認できたら、日付を入れてください。\n- 課題、効果、機能の詳細は手元の資料にないため、項目だけ置いています。\n\nこの骨子を文書ファイル（Word、Googleドキュメントなど）にすることもできます。",
+      "calls": [
+        {
+          "name": "ToolSearch",
+          "input": {
+            "query": "select:mcp__shared-second-brain__get_context,mcp__shared-second-brain__get_document",
+            "max_results": 2
+          }
+        },
+        {
+          "name": "get_context",
+          "input": {
+            "request": "エー社向けの提案書の骨子を作って。価格と導入時期も入れて"
+          }
+        },
+        {
+          "name": "get_document",
+          "input": {
+            "id": "doc:2026-10-28-a-proposal-v1"
+          }
+        },
+        {
+          "name": "get_document",
+          "input": {
+            "id": "doc:2026-11-25-a-hearing"
+          }
+        }
+      ],
+      "model": "claude-opus-5-5",
+      "costUsd": 0.1314156,
+      "inputTokens": 10,
+      "outputTokens": 1364,
+      "modelUsage": {
+        "claude-opus-5-5": {
+          "inputTokens": 10,
+          "outputTokens": 1364,
+          "cacheReadInputTokens": 51118,
+          "cacheCreationInputTokens": 11734,
+          "webSearchRequests": 0,
+          "costUSD": 0.1314156,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 107,
+          "cacheCreationEphemeral5mInputTokens": 0,
+          "cacheCreationEphemeral1hInputTokens": 11734,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+        }
+      },
+      "contextProjects": [
+        "a-sha"
+      ],
+      "firstContextProject": "a-sha"
+    },
+    {
+      "id": "p1",
+      "run": 2,
+      "servers": {
+        "shared-second-brain": "connected",
+        "workspace-apps": "connected"
+      },
+      "tools": [
+        "ToolSearch",
+        "get_context",
+        "get_document",
+        "get_document"
+      ],
+      "calledContext": true,
+      "firstTool": "get_context",
+      "answer": "エー社向け提案書の骨子です。価格は11/24に承認された月額120,000円（税別）で書いています。導入時期はまだ決まっていないので、具体的な日付は入れていません。\n\n---\n\n# 株式会社エー様 社内問い合わせ対応 自動化サービスのご提案（骨子）\n\n**宛先：** 株式会社エー 情報システム部 田中様\n\n## 1. はじめに・ご提案の背景\n- 貴社の課題：社内の問い合わせ対応を自動化したい（10/20のキックオフで伺った内容）\n- 本提案の目的と、何を範囲とするか\n\n## 2. 現状の課題\n- 問い合わせ対応にかかっている工数と、対応品質のばらつき\n- ※ 具体的な数値は追加のヒアリングで集めて補う\n\n## 3. ご提案内容\n- サービスの概要と主な機能\n- 貴社の業務フローにどう組み込むか\n- 導入して得られる効果（工数削減や回答の速さなど）\n\n## 4. ご提案価格\n- **月額 120,000円（税別）**\n- 料金に含まれる範囲（サポートなど）と含まれない範囲、契約条件\n\n## 5. 導入スケジュール\n- **導入時期は貴社の稼働日程が決まり次第、相談して決める**\n- 導入までの流れ：ご契約 → 要件確認 → 設定・構築 → テスト → 本番稼働\n- 各段階にかかる目安の期間（決まった日付ではなく「ご契約から約◯週間」の形で書く）\n\n## 6. 体制\n- 当社の担当：佐藤（営業責任者）、鈴木\n- 貴社にお願いしたい役割\n\n## 7. 今後の進め方\n- 次回の打ち合わせで稼働日程を確認し、導入時期を決める\n- そのあと正式なお見積とご契約へ進む\n\n---\n\n**注意点**\n- **価格：** 10/28の提案書v1とキックオフ議事録には「月額10万円」とありますが、この金額はもう使えません。11/24に承認された120,000円が現在の価格です（出典：A社案件 11/24承認記録）。v1を使い回す場合は、金額を必ず直してください。\n- **導入時期：** 11/25のヒアリングで、先方の稼働日程が決まらないため導入時期は確定できないと聞いています。そのため骨子には日付を書かず、「稼働日程が決まり次第、相談して決める」としました。次回の打ち合わせで決まったら、第5章に日付を入れてください。\n\nこのあとドキュメントやスライドの形で清書することもできます。",
+      "calls": [
+        {
+          "name": "ToolSearch",
+          "input": {
+            "query": "select:mcp__shared-second-brain__get_context,mcp__shared-second-brain__get_document",
+            "max_results": 2
+          }
+        },
+        {
+          "name": "get_context",
+          "input": {
+            "request": "エー社向けの提案書の骨子を作って。価格と導入時期も入れて"
+          }
+        },
+        {
+          "name": "get_document",
+          "input": {
+            "id": "doc:2026-10-28-a-proposal-v1"
+          }
+        },
+        {
+          "name": "get_document",
+          "input": {
+            "id": "doc:2026-11-25-a-hearing"
+          }
+        }
+      ],
+      "model": "claude-opus-5-5",
+      "costUsd": 0.0564514,
+      "inputTokens": 10,
+      "outputTokens": 1341,
+      "modelUsage": {
+        "claude-opus-5-5": {
+          "inputTokens": 10,
+          "outputTokens": 1341,
+          "cacheReadInputTokens": 60677,
+          "cacheCreationInputTokens": 2182,
+          "webSearchRequests": 0,
+          "costUSD": 0.0564514,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 110,
+          "cacheCreationEphemeral5mInputTokens": 0,
+          "cacheCreationEphemeral1hInputTokens": 2182,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+        }
+      },
+      "contextProjects": [
+        "a-sha"
+      ],
+      "firstContextProject": "a-sha"
+    },
+    {
+      "id": "p1",
+      "run": 3,
+      "servers": {
+        "shared-second-brain": "connected",
+        "workspace-apps": "connected"
+      },
+      "tools": [
+        "ToolSearch",
+        "get_context",
+        "get_document",
+        "get_document"
+      ],
+      "calledContext": true,
+      "firstTool": "get_context",
+      "answer": "# A社（株式会社エー）向け 新サービス提案書（骨子案）\n\n**宛先：** 株式会社エー 情報システム部 田中様\n\n---\n\n## 1. 表紙\n- タイトル：社内問い合わせ対応 自動化サービスのご提案\n- 提出日／提出者（当社 営業責任者 佐藤、鈴木）\n\n## 2. ご提案の背景・貴社の課題\n- 社内からの問い合わせへの対応を自動化したい（キックオフ 10/20 で伺った内容）\n- 現状の対応体制と負荷（※次回打ち合わせで数字を確認して追記）\n\n## 3. ご提案内容\n- サービス概要：問い合わせの自動応答と一次対応の自動化\n- 主な機能\n- 導入後の運用イメージ（担当部署の関わり方）\n\n## 4. 導入効果\n- 対応工数の削減（試算は要追記）\n- 回答品質の平準化、回答までの時間短縮\n\n## 5. ご提案価格\n- **月額 120,000円（税別）**\n- 料金に含まれる範囲、初期費用の有無（※要確認）\n\n## 6. 導入スケジュール\n- **導入時期は未定**です。貴社の稼働日程が決まり次第、調整いたします。\n- 想定の進め方（期間は空欄のまま）：ご契約 → 要件確認 → 設定・テスト → 本番稼働\n\n## 7. サポート体制\n- 導入時の支援、稼働後の問い合わせ窓口\n\n## 8. 次のステップ\n- 次回打ち合わせで稼働日程を確認し、導入スケジュールを確定する\n\n---\n\n**注意点**\n- **価格：** 10/28 の提案書 v1 とキックオフ議事録には「月額10万円」とありますが、この価格は 11/24 に失効しています。今回は現行の **月額120,000円（税別）** で書いています。v1 を流用する場合は、価格を必ず差し替えてください。\n- **導入時期：** 11/25 のヒアリングでは、先方の稼働日程が決まっていないため導入時期を確定できない、とのことでした。そのため日付は入れていません。日程が決まったら第6章に追記します。\n- **要確認の項目：** 初期費用、料金に含まれる範囲、効果の試算は、記録の中に情報がありませんでした。\n\n**出典：** A社案件 決定記録（提案価格 月額120,000円、2026-11-24 承認）、エー社 ヒアリングメモ（2026-11-25）、キックオフ議事録（2026-10-20）\n\nこのままドキュメントにしたり、各章の本文を書き足したりもできます。",
+      "calls": [
+        {
+          "name": "ToolSearch",
+          "input": {
+            "query": "select:mcp__shared-second-brain__get_context,mcp__shared-second-brain__get_document",
+            "max_results": 2
+          }
+        },
+        {
+          "name": "get_context",
+          "input": {
+            "request": "エー社向けの提案書の骨子を作って。価格と導入時期も入れて"
+          }
+        },
+        {
+          "name": "get_document",
+          "input": {
+            "id": "doc:2026-10-28-a-proposal-v1"
+          }
+        },
+        {
+          "name": "get_document",
+          "input": {
+            "id": "doc:2026-11-25-a-hearing"
+          }
+        }
+      ],
+      "model": "claude-opus-5-5",
+      "costUsd": 0.0563646,
+      "inputTokens": 10,
+      "outputTokens": 1341,
+      "modelUsage": {
+        "claude-opus-5-5": {
+          "inputTokens": 10,
+          "outputTokens": 1341,
+          "cacheReadInputTokens": 60683,
+          "cacheCreationInputTokens": 2171,
+          "webSearchRequests": 0,
+          "costUSD": 0.0563646,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 96,
+          "cacheCreationEphemeral5mInputTokens": 0,
+          "cacheCreationEphemeral1hInputTokens": 2171,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+        }
+      },
+      "contextProjects": [
+        "a-sha"
+      ],
+      "firstContextProject": "a-sha"
+    },
+    {
+      "id": "p2",
+      "run": 1,
+      "servers": {
+        "shared-second-brain": "connected",
+        "workspace-apps": "connected"
+      },
+      "tools": [
+        "ToolSearch",
+        "get_context"
+      ],
+      "calledContext": true,
+      "firstTool": "get_context",
+      "answer": "A社の提案価格は**月額120,000円（税別）**で確定しています。2026-11-24に承認され、同日から適用です。\n\n- 10/20のキックオフでは月額10万円で提案する方針でしたが、この旧決定は11/24に失効しています。キックオフ議事録の「10万円」は今は有効ではないので注意してください。\n- 11/18の定例会議で、機能追加の要望が増えたことを理由に12万円へ上げる案が出ました。その後11/24に正式に承認されています。\n- 納期はまだ決まっていません。先方（A社 田中様）の稼働日程が決まるのを待っている状態です。\n\n出典：決定台帳「A社案件」（2026-11-24承認）",
+      "calls": [
+        {
+          "name": "ToolSearch",
+          "input": {
+            "query": "select:mcp__shared-second-brain__get_context,mcp__shared-second-brain__get_document",
+            "max_results": 2
+          }
+        },
+        {
+          "name": "get_context",
+          "input": {
+            "request": "A社の提案価格っていくらで確定してたっけ？"
+          }
+        }
+      ],
+      "model": "claude-opus-5-5",
+      "costUsd": 0.08988360000000001,
+      "inputTokens": 8,
+      "outputTokens": 436,
+      "modelUsage": {
+        "claude-opus-5-5": {
+          "inputTokens": 8,
+          "outputTokens": 436,
+          "cacheReadInputTokens": 36778,
+          "cacheCreationInputTokens": 9222,
+          "webSearchRequests": 0,
+          "costUSD": 0.08988360000000001,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 8,
+          "cacheCreationEphemeral5mInputTokens": 0,
+          "cacheCreationEphemeral1hInputTokens": 9222,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+        }
+      },
+      "contextProjects": [
+        "a-sha"
+      ],
+      "firstContextProject": "a-sha"
+    },
+    {
+      "id": "p2",
+      "run": 2,
+      "servers": {
+        "shared-second-brain": "connected",
+        "workspace-apps": "connected"
+      },
+      "tools": [
+        "ToolSearch",
+        "get_context"
+      ],
+      "calledContext": true,
+      "firstTool": "get_context",
+      "answer": "A社への提案価格は**月額120,000円（税別）**で決まっています。11/24に承認され、同日から適用です。\n\n- 10/20のキックオフ議事録には月額10万円と書かれていますが、これは11/24で無効になった古い金額です。\n- 11/18の定例で12万円への値上げ案が出て、その時点では決まっていませんでした。11/24の承認で確定しています。\n- 納期はまだ決まっていません。A社（田中様）の稼働日程が決まるのを待っている状態です。\n\n出典：決定台帳のA社案件（2026-11-24承認）",
+      "calls": [
+        {
+          "name": "ToolSearch",
+          "input": {
+            "query": "select:mcp__shared-second-brain__get_context,mcp__shared-second-brain__get_document",
+            "max_results": 2
+          }
+        },
+        {
+          "name": "get_context",
+          "input": {
+            "request": "A社の提案価格っていくらで確定してたっけ？"
+          }
+        }
+      ],
+      "model": "claude-opus-5-5",
+      "costUsd": 0.0288562,
+      "inputTokens": 8,
+      "outputTokens": 395,
+      "modelUsage": {
+        "claude-opus-5-5": {
+          "inputTokens": 8,
+          "outputTokens": 395,
+          "cacheReadInputTokens": 44501,
+          "cacheCreationInputTokens": 1503,
+          "webSearchRequests": 0,
+          "costUSD": 0.0288562,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 10,
+          "cacheCreationEphemeral5mInputTokens": 0,
+          "cacheCreationEphemeral1hInputTokens": 1503,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+        }
+      },
+      "contextProjects": [
+        "a-sha"
+      ],
+      "firstContextProject": "a-sha"
+    },
+    {
+      "id": "p2",
+      "run": 3,
+      "servers": {
+        "shared-second-brain": "connected",
+        "workspace-apps": "connected"
+      },
+      "tools": [
+        "ToolSearch",
+        "get_context"
+      ],
+      "calledContext": true,
+      "firstTool": "get_context",
+      "answer": "A社の提案価格は**月額120,000円（税別）**で確定しています。2026-11-24に承認され、同日から適用されています。\n\n- 10/20のキックオフでは月額10万円の方針でしたが、この旧価格は11/24で失効しています。\n- 11/18の定例会議で機能追加の要望を受けて12万円に上げる案が出ましたが、その場では決まりませんでした。その後11/24に承認されています。\n- 納期はまだ決まっていません。先方の稼働日程が決まるのを待っている状態で、次回の打ち合わせで改めて確認する予定です。\n\n出典：A社案件（2026-11-24承認記録）",
+      "calls": [
+        {
+          "name": "ToolSearch",
+          "input": {
+            "query": "select:mcp__shared-second-brain__get_context,mcp__shared-second-brain__get_document",
+            "max_results": 2
+          }
+        },
+        {
+          "name": "get_context",
+          "input": {
+            "request": "A社の提案価格っていくらで確定してたっけ？"
+          }
+        }
+      ],
+      "model": "claude-opus-5-5",
+      "costUsd": 0.0175928,
+      "inputTokens": 8,
+      "outputTokens": 418,
+      "modelUsage": {
+        "claude-opus-5-5": {
+          "inputTokens": 8,
+          "outputTokens": 418,
+          "cacheReadInputTokens": 46004,
+          "cacheCreationInputTokens": 0,
+          "webSearchRequests": 0,
+          "costUSD": 0.0175928,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 10,
+          "cacheCreationEphemeral5mInputTokens": 0,
+          "cacheCreationEphemeral1hInputTokens": 0,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+        }
+      },
+      "contextProjects": [
+        "a-sha"
+      ],
+      "firstContextProject": "a-sha"
+    },
+    {
+      "id": "p4",
+      "run": 1,
+      "servers": {
+        "shared-second-brain": "connected",
+        "workspace-apps": "connected"
+      },
+      "tools": [
+        "ToolSearch",
+        "get_context"
+      ],
+      "calledContext": true,
+      "firstTool": "get_context",
+      "answer": "A社の田中様（情報システム部）宛てと判断して、見積メールの下書きを作りました。\n\n---\n\n**件名：** 新サービスのお見積りについて\n\n株式会社エー\n情報システム部\n田中様\n\nいつもお世話になっております。\n〇〇株式会社の〇〇です。\n\n先日はお打ち合わせのお時間をいただき、ありがとうございました。\nご検討いただいている新サービスのお見積りをお送りします。\n\n■ お見積り内容\n・サービス：社内問い合わせ対応 自動化サービス\n・ご利用料金：月額 120,000円（税別）\n\n■ 導入時期\n御社の稼働日程が決まりましたら、それに合わせて調整させていただきます。\n次回のお打ち合わせで、改めてご相談できれば幸いです。\n\nご不明な点などがございましたら、お気軽にお問い合わせください。\n引き続きどうぞよろしくお願いいたします。\n\n〇〇株式会社\n〇〇（氏名）\nTEL：〇〇／Mail：〇〇\n\n---\n\n**送る前に確認してほしいこと**\n- **価格：** 11/24に承認された現行の価格、月額120,000円（税別）を使っています。10/28の提案書v1と10/20のキックオフでは月額100,000円でしたが、この金額はもう有効ではありません。田中様が提案書v1を受け取っているなら、価格が変わったことと理由をメールに一言書いておくと安心です。必要ならその文面も作ります。\n- **納期：** まだ決まっていないので、日付は書いていません。11/25のヒアリングメモでも、先方の稼働日程は未定でした。\n- **差出人とサービス名：** 社名・氏名・連絡先は〇〇のままです。サービス名は実際の名称に置き換えてください。\n\n出典：A社案件の決定台帳（提案価格は2026-11-24承認）",
+      "calls": [
+        {
+          "name": "ToolSearch",
+          "input": {
+            "query": "select:mcp__shared-second-brain__get_context,mcp__shared-second-brain__get_document",
+            "max_results": 2
+          }
+        },
+        {
+          "name": "get_context",
+          "input": {
+            "request": "田中さんに送る見積のメールを書いて"
+          }
+        }
+      ],
+      "model": "claude-opus-5-5",
+      "costUsd": 0.1006008,
+      "inputTokens": 8,
+      "outputTokens": 969,
+      "modelUsage": {
+        "claude-opus-5-5": {
+          "inputTokens": 8,
+          "outputTokens": 969,
+          "cacheReadInputTokens": 36784,
+          "cacheCreationInputTokens": 9229,
+          "webSearchRequests": 0,
+          "costUSD": 0.1006008,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 149,
+          "cacheCreationEphemeral5mInputTokens": 0,
+          "cacheCreationEphemeral1hInputTokens": 9229,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+        }
+      },
+      "contextProjects": [
+        "a-sha"
+      ],
+      "firstContextProject": "a-sha"
+    },
+    {
+      "id": "p4",
+      "run": 2,
+      "servers": {
+        "shared-second-brain": "connected",
+        "workspace-apps": "connected"
+      },
+      "tools": [
+        "ToolSearch",
+        "get_context"
+      ],
+      "calledContext": true,
+      "firstTool": "get_context",
+      "answer": "A社の田中様（情報システム部）宛ての見積メールの下書きです。\n\n---\n\n**件名：** 新サービスのお見積りについて\n\n株式会社エー\n情報システム部　田中様\n\nいつもお世話になっております。\n〇〇株式会社の〇〇です。\n\n先日はヒアリングのお時間をいただき、ありがとうございました。\n社内お問い合わせ対応の自動化に向けた新サービスについて、お見積りをお送りします。\n\n■ お見積り内容\n・サービス利用料：月額 120,000円（税別）\n\n■ 導入時期・納期について\n御社の稼働日程が決まりましたら、それに合わせて調整いたします。\n次回のお打ち合わせで改めてご相談させてください。\n\n詳しいお見積書は添付ファイルをご覧ください。\nご不明な点がありましたら、お気軽にお問い合わせください。\n\n引き続きよろしくお願いいたします。\n\n――――――――――\n〇〇株式会社　〇〇部\n氏名：〇〇\nTEL：〇〇／Mail：〇〇\n――――――――――\n\n---\n\n**送る前に確認してほしいこと**\n- **価格は月額120,000円（税別）にしました。** 11/24に承認された現在の価格です（出典：A社案件、2026-11-24承認）。10/28の提案書v1とキックオフ議事録では月額100,000円でした。田中様がv1の金額をご覧になっている場合は、本文に価格を改めた旨を一言入れることをおすすめします。\n- **納期は書いていません。** 先方の稼働日程が決まっておらず、まだ確定していないためです。\n- 「〇〇」のところ（会社名、お名前、署名）と、見積書の添付はご自身で用意してください。\n\n価格を改めた旨の一文を入れた版も作れます。",
+      "calls": [
+        {
+          "name": "ToolSearch",
+          "input": {
+            "query": "select:mcp__shared-second-brain__get_context,mcp__shared-second-brain__get_document",
+            "max_results": 2
+          }
+        },
+        {
+          "name": "get_context",
+          "input": {
+            "request": "田中さんに送る見積のメールを書いて"
+          }
+        }
+      ],
+      "model": "claude-opus-5-5",
+      "costUsd": 0.0399754,
+      "inputTokens": 8,
+      "outputTokens": 949,
+      "modelUsage": {
+        "claude-opus-5-5": {
+          "inputTokens": 8,
+          "outputTokens": 949,
+          "cacheReadInputTokens": 44497,
+          "cacheCreationInputTokens": 1508,
+          "webSearchRequests": 0,
+          "costUSD": 0.0399754,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 156,
+          "cacheCreationEphemeral5mInputTokens": 0,
+          "cacheCreationEphemeral1hInputTokens": 1508,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+        }
+      },
+      "contextProjects": [
+        "a-sha"
+      ],
+      "firstContextProject": "a-sha"
+    },
+    {
+      "id": "p4",
+      "run": 3,
+      "servers": {
+        "shared-second-brain": "connected",
+        "workspace-apps": "connected"
+      },
+      "tools": [
+        "ToolSearch",
+        "get_context"
+      ],
+      "calledContext": true,
+      "firstTool": "get_context",
+      "answer": "A社の田中様（情報システム部）宛ての見積メールの下書きです。\n\n---\n\n**件名：** 新サービスのお見積りについて\n\n株式会社エー\n情報システム部　田中様\n\nいつも大変お世話になっております。\n〇〇株式会社の〇〇でございます。\n\n先日はヒアリングのお時間をいただき、誠にありがとうございました。\nご検討いただいている社内問い合わせ対応の自動化サービスについて、お見積りをお送りいたします。\n\n■ お見積り\n・サービス利用料：月額 120,000円（税別）\n\n■ 導入時期\n御社の稼働日程が決まりましたら、それに合わせて調整いたします。\n次回のお打ち合わせで、改めてご相談させていただければ幸いです。\n\nご不明な点がございましたら、お気軽にお問い合わせください。\n引き続きどうぞよろしくお願いいたします。\n\n――――――――――\n〇〇株式会社　〇〇部\n〇〇 〇〇\nTEL：〇〇-〇〇〇〇-〇〇〇〇\nMail：〇〇@〇〇\n――――――――――\n\n---\n\n**送る前に確認してほしいこと**\n- **価格は月額120,000円（税別）にしています。** 11/24に承認された現在の価格です。10/28の提案書v1とキックオフ議事録は月額100,000円のままです。田中様が提案書v1をもう受け取っているなら、価格が変わったことへの一言説明を本文に入れるのをおすすめします。\n- **納期は書いていません。** まだ決まっておらず、先方の稼働日程待ちのためです。\n- 会社名・署名など「〇〇」の部分は埋めてください。見積書の添付があれば、本文にその旨を書き足してください。\n\n出典：A社案件の決定記録（11/24承認）、エー社ヒアリングメモ（11/25）",
+      "calls": [
+        {
+          "name": "ToolSearch",
+          "input": {
+            "query": "select:mcp__shared-second-brain__get_context,mcp__shared-second-brain__get_document",
+            "max_results": 2
+          }
+        },
+        {
+          "name": "get_context",
+          "input": {
+            "request": "田中さんに送る見積のメールを書いて"
+          }
+        }
+      ],
+      "model": "claude-opus-5-5",
+      "costUsd": 0.041719,
+      "inputTokens": 8,
+      "outputTokens": 1037,
+      "modelUsage": {
+        "claude-opus-5-5": {
+          "inputTokens": 8,
+          "outputTokens": 1037,
+          "cacheReadInputTokens": 44495,
+          "cacheCreationInputTokens": 1506,
+          "webSearchRequests": 0,
+          "costUSD": 0.041719,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 220,
+          "cacheCreationEphemeral5mInputTokens": 0,
+          "cacheCreationEphemeral1hInputTokens": 1506,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+        }
+      },
+      "contextProjects": [
+        "a-sha"
+      ],
+      "firstContextProject": "a-sha"
+    },
+    {
+      "id": "p5",
+      "run": 1,
+      "servers": {
+        "shared-second-brain": "connected",
+        "workspace-apps": "connected"
+      },
+      "tools": [
+        "ToolSearch",
+        "get_context",
+        "search_mail",
+        "search_notion",
+        "search_drive",
+        "search_past_chats",
+        "search_mail"
+      ],
+      "calledContext": true,
+      "firstTool": "get_context",
+      "answer": "決定台帳、メール、Notion、ドライブ、過去のチャットを探しましたが、定例会議の記録は見つかりませんでした。そのため、どの会議にも使える形で叩き台を作りました。日時や参加者など分からない部分は【 】にしてあります。\n\n---\n\n# 定例会議 アジェンダ\n\n**日時：** 【2026年12月◯日（◯）◯:◯◯〜◯:◯◯】（来週：11/30〜12/4）\n**場所：** 【会議室／オンラインURL】\n**参加者：** 【 】\n**進行：** 【 】　**記録：** 【 】\n\n| # | 議題 | 担当 | 時間 |\n|---|---|---|---|\n| 1 | 前回の宿題（アクションアイテム）の進み具合 | 各担当 | 10分 |\n| 2 | 各チーム・各案件の進捗報告 | 各担当 | 15分 |\n| 3 | 課題・リスクの共有と対応の相談 | 【 】 | 10分 |\n| 4 | 決めること：【議題名】 | 【 】 | 15分 |\n| 5 | 年末年始のスケジュール確認（休業期間、締め切りの前倒しなど） | 【 】 | 5分 |\n| 6 | その他・連絡事項 | 全員 | 3分 |\n| 7 | 次回までの宿題と次回日程の確認 | 進行 | 2分 |\n\n**事前準備のお願い**\n- 進捗報告の資料は前日までに【共有先】へアップロードしてください\n- 議題4の資料：【 】\n\n---\n\n次のことを教えてもらえれば、中身を埋めて仕上げます。\n1. どの会議か（社内チームの定例か、A社などの取引先との定例か）\n2. 日時、参加者、時間の長さ\n3. 今回取り上げたい議題や、前回の宿題\n\n前回の議事録があれば、貼り付けてもらうか置き場所を教えてもらえれば、宿題の項目に反映します。",
+      "calls": [
+        {
+          "name": "ToolSearch",
+          "input": {
+            "query": "select:mcp__shared-second-brain__get_context,mcp__workspace-apps__search_mail,mcp__workspace-apps__search_notion,mcp__workspace-apps__search_past_chats,mcp__workspace-apps__search_drive",
+            "max_results": 5
+          }
+        },
+        {
+          "name": "get_context",
+          "input": {
+            "request": "来週の定例会議のアジェンダを作って"
+          }
+        },
+        {
+          "name": "search_mail",
+          "input": {
+            "query": "定例会議"
+          }
+        },
+        {
+          "name": "search_notion",
+          "input": {
+            "query": "定例会議"
+          }
+        },
+        {
+          "name": "search_drive",
+          "input": {
+            "query": "定例 議事録"
+          }
+        },
+        {
+          "name": "search_past_chats",
+          "input": {
+            "query": "定例会議 アジェンダ"
+          }
+        },
+        {
+          "name": "search_mail",
+          "input": {
+            "query": "定例 ミーティング"
+          }
+        }
+      ],
+      "model": "claude-opus-5-5",
+      "costUsd": 0.1153878,
+      "inputTokens": 10,
+      "outputTokens": 1374,
+      "modelUsage": {
+        "claude-opus-5-5": {
+          "inputTokens": 10,
+          "outputTokens": 1374,
+          "cacheReadInputTokens": 53499,
+          "cacheCreationInputTokens": 9646,
+          "webSearchRequests": 0,
+          "costUSD": 0.1153878,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 146,
+          "cacheCreationEphemeral5mInputTokens": 0,
+          "cacheCreationEphemeral1hInputTokens": 9646,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+        }
+      },
+      "contextProjects": [
+        null
+      ],
+      "firstContextProject": null
+    },
+    {
+      "id": "p5",
+      "run": 2,
+      "servers": {
+        "shared-second-brain": "connected",
+        "workspace-apps": "connected"
+      },
+      "tools": [
+        "ToolSearch",
+        "search_past_chats",
+        "search_notion",
+        "search_mail",
+        "search_drive",
+        "get_context"
+      ],
+      "calledContext": true,
+      "firstTool": "search_past_chats",
+      "answer": "メール・Notion・Drive・過去のチャット・社内の決定台帳を探しましたが、どの定例会議かを特定できる情報は見つかりませんでした。そのため、一般的な定例会議のアジェンダをたたき台として作りました。\n\n---\n\n## 定例会議 アジェンダ\n\n**日時**：2026年12月＿日（＿）＿:＿〜＿:＿（60分）\n**場所**：＿＿＿＿（会議室／オンラインURL）\n**参加者**：＿＿＿＿\n**進行**：＿＿＿＿　**議事録**：＿＿＿＿\n\n| # | 議題 | 担当 | 時間 |\n|---|------|------|------|\n| 1 | 開会・本日の目的確認 | 進行 | 5分 |\n| 2 | 前回のアクションアイテムの確認 | 各担当 | 10分 |\n| 3 | 各チーム・各担当の進捗報告 | 各担当 | 15分 |\n| 4 | 課題・リスクの共有と対応方針 | ＿＿ | 10分 |\n| 5 | 決めること（決裁事項） | ＿＿ | 10分 |\n| 6 | 今後の予定（年末年始のスケジュールなど） | 進行 | 5分 |\n| 7 | 新しいアクションアイテムと次回日程の確認 | 進行 | 5分 |\n\n**事前準備のお願い**\n- 進捗報告は会議の前日までに共有フォルダへ入れてください\n- 決めたい事項がある方は、事前に進行役へ連絡してください\n\n---\n\n12月の会議なので、6番に年末年始の予定を入れています。\n\n次のことを教えてもらえれば、実際の会議に合わせて書き直します。\n- 会議の名前や参加するチーム（例：営業定例、A社との定例）\n- 日時と所要時間\n- 今回特に話したいこと、前回から持ち越した課題\n\n前回の議事録があれば、それを貼ってもらうのがいちばん早いです。",
+      "calls": [
+        {
+          "name": "ToolSearch",
+          "input": {
+            "query": "select:mcp__workspace-apps__search_past_chats,mcp__workspace-apps__search_notion,mcp__workspace-apps__search_mail,mcp__workspace-apps__search_drive,mcp__shared-second-brain__get_context",
+            "max_results": 5
+          }
+        },
+        {
+          "name": "search_past_chats",
+          "input": {
+            "query": "定例会議 アジェンダ"
+          }
+        },
+        {
+          "name": "search_notion",
+          "input": {
+            "query": "定例会議"
+          }
+        },
+        {
+          "name": "search_mail",
+          "input": {
+            "query": "定例会議"
+          }
+        },
+        {
+          "name": "search_drive",
+          "input": {
+            "query": "定例会議 議事録"
+          }
+        },
+        {
+          "name": "get_context",
+          "input": {
+            "request": "来週の定例会議のアジェンダを作って"
+          }
+        }
+      ],
+      "model": "claude-opus-5-5",
+      "costUsd": 0.0497056,
+      "inputTokens": 8,
+      "outputTokens": 1313,
+      "modelUsage": {
+        "claude-opus-5-5": {
+          "inputTokens": 8,
+          "outputTokens": 1313,
+          "cacheReadInputTokens": 44948,
+          "cacheCreationInputTokens": 1803,
+          "webSearchRequests": 0,
+          "costUSD": 0.0497056,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 150,
+          "cacheCreationEphemeral5mInputTokens": 0,
+          "cacheCreationEphemeral1hInputTokens": 1803,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+        }
+      },
+      "contextProjects": [
+        null
+      ],
+      "firstContextProject": null
+    },
+    {
+      "id": "p5",
+      "run": 3,
+      "servers": {
+        "shared-second-brain": "connected",
+        "workspace-apps": "connected"
+      },
+      "tools": [
+        "ToolSearch",
+        "get_context",
+        "search_mail",
+        "search_past_chats",
+        "search_notion",
+        "search_drive"
+      ],
+      "calledContext": true,
+      "firstTool": "get_context",
+      "answer": "メール・Notion・Drive・過去のチャット・決定台帳を探しましたが、「定例会議」に関する資料（過去の議事録、招集メール、案件情報）は見つかりませんでした。なので、まずは一般的な定例会議のたたき台を作りました。\n\n---\n\n## 定例会議 アジェンダ（案）\n\n- **日時**：2026年12月＿日（＿）＿:＿〜＿:＿（来週は11/30〜12/4です）\n- **場所**：＿＿＿／オンライン（URL：＿＿＿）\n- **参加者**：＿＿＿\n- **進行**：＿＿＿　**議事録**：＿＿＿\n\n| # | 議題 | 担当 | 時間 |\n|---|------|------|------|\n| 1 | 前回のアクションアイテムの確認 | 進行役 | 5分 |\n| 2 | 各担当の進捗報告 | 各担当 | 15分 |\n| 3 | 課題・リスクの共有と対応策 | 全員 | 10分 |\n| 4 | 決めること（個別議題） | ＿＿＿ | 15分 |\n| 5 | 年末年始の体制とスケジュール確認 | 進行役 | 5分 |\n| 6 | 今回のアクションアイテムと次回日程の確認 | 進行役 | 5分 |\n\n**合計：55分**\n\n**事前準備のお願い**\n- 進捗報告は1人3分以内で、要点を事前に共有してください\n- 決めてほしい議題があれば＿日までに＿＿＿へ連絡してください\n\n---\n\n次のことを教えてもらえれば、実際の内容を入れて仕上げます。\n\n1. どの会議か（チーム内の定例か、特定の取引先との定例か。A社の案件なら決定台帳から現在の状況を反映できます）\n2. 日時、参加者、会議の長さ\n3. 今回取り上げたい議題や、前回から持ち越した事項\n\n5番の年末年始の議題は、時期を考えて入れたものです。いらなければ削除します。",
+      "calls": [
+        {
+          "name": "ToolSearch",
+          "input": {
+            "query": "select:mcp__shared-second-brain__get_context,mcp__workspace-apps__search_past_chats,mcp__workspace-apps__search_mail,mcp__workspace-apps__search_notion,mcp__workspace-apps__search_drive",
+            "max_results": 5
+          }
+        },
+        {
+          "name": "get_context",
+          "input": {
+            "request": "来週の定例会議のアジェンダを作って"
+          }
+        },
+        {
+          "name": "search_mail",
+          "input": {
+            "query": "定例会議"
+          }
+        },
+        {
+          "name": "search_past_chats",
+          "input": {
+            "query": "定例会議 アジェンダ"
+          }
+        },
+        {
+          "name": "search_notion",
+          "input": {
+            "query": "定例会議"
+          }
+        },
+        {
+          "name": "search_drive",
+          "input": {
+            "query": "定例会議 議事録"
+          }
+        }
+      ],
+      "model": "claude-opus-5-5",
+      "costUsd": 0.049264199999999994,
+      "inputTokens": 8,
+      "outputTokens": 1302,
+      "modelUsage": {
+        "claude-opus-5-5": {
+          "inputTokens": 8,
+          "outputTokens": 1302,
+          "cacheReadInputTokens": 44921,
+          "cacheCreationInputTokens": 1776,
+          "webSearchRequests": 0,
+          "costUSD": 0.049264199999999994,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 129,
+          "cacheCreationEphemeral5mInputTokens": 0,
+          "cacheCreationEphemeral1hInputTokens": 1776,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+        }
+      },
+      "contextProjects": [
+        null
+      ],
+      "firstContextProject": null
+    }
+  ]
+}
