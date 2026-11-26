@@ -1,13 +1,15 @@
 // Team trial without a server: the decision ledger lives inside the shared folder (Google Drive, Box, OneDrive…).
 //
 //   <folder>/.coheads/events/<time>-<id>.json   one file per event, never edited, so sync tools never conflict
-//   <folder>/.coheads/team.json                 optional: { "approvers": ["佐藤", ...] }
+//   <folder>/.coheads/team.json                 optional, older form: { "approvers": ["佐藤", ...] } (read as the starting list)
 //
+// Who may approve is set on the approval page and recorded as events too (approver_added / approver_removed),
+// so the list has the same history and sync behavior as the decisions. An empty list means "every member" (trial).
 // Every member's Coheads replays the event files into its own local index. Files that arrive late (sync delay)
 // are handled by replaying from the start whenever the order changes.
 //
 // Trust model (trial): anyone who can write to the folder can write events. Approver names are checked against
-// team.json when it exists; without it, every member may approve. Server mode (WalkOn support) replaces this.
+// the approver list as of the event's time; while the list is empty, every member may approve. Server mode (WalkOn support) replaces this.
 import { randomUUID } from 'node:crypto';
 import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -20,7 +22,14 @@ export type LedgerEvent =
   | { v: 1; type: 'proposed'; at: string; by: string; decisionId: string; projectId: string; topicKey: string; label: string;
       value: DecisionValue; validFrom?: ISODate; sources: SourceRef[]; classification?: Classification }
   | { v: 1; type: 'approved'; at: string; by: string; decisionId: string }
-  | { v: 1; type: 'rejected'; at: string; by: string; decisionId: string; note?: string };
+  | { v: 1; type: 'rejected'; at: string; by: string; decisionId: string; note?: string }
+  | { v: 1; type: 'approver_added' | 'approver_removed'; at: string; by: string; name: string };
+
+export type ApproverEvent = Extract<LedgerEvent, { name: string }>;
+const isApproverEvent = (ev: LedgerEvent): ev is ApproverEvent => ev.type === 'approver_added' || ev.type === 'approver_removed';
+const KNOWN_TYPES = new Set(['proposed', 'approved', 'rejected', 'approver_added', 'approver_removed']);
+// A record this version cannot read (a newer Coheads wrote it). It is skipped, and noted so people are told to update.
+const NEWER = 'newer version: ';
 
 const dirs = (root: string) => ({ base: join(root, '.coheads'), events: join(root, '.coheads', 'events') });
 
@@ -49,68 +58,128 @@ function listEvents(root: string): string[] {
 }
 
 async function ensureTables(db: Db) {
-  await db.exec(`create table if not exists shared_events_applied (name text primary key, ok boolean not null, note text)`);
+  await db.exec(`create table if not exists shared_events_applied (name text primary key, ok boolean not null, note text);
+    create table if not exists shared_approver_changes (seq serial primary key, at text not null, by text not null, kind text not null, who text not null);`);
 }
 
-async function applyOne(db: Db, ev: LedgerEvent, projectIds: Set<string>): Promise<string | undefined> {
+/** The approver list now: team.json (older form) as the start, then every accepted change in order. Empty = every member. */
+async function approverList(db: Db, root: string): Promise<string[]> {
+  let list = [...(readTeam(root).approvers ?? [])];
+  for (const c of await db.query<{ kind: string; who: string }>('select kind, who from shared_approver_changes order by seq')) {
+    if (c.kind === 'approver_added') { if (!list.includes(c.who)) list.push(c.who); }
+    else list = list.filter(n => n !== c.who);
+  }
+  return list;
+}
+
+/** Make the approver rights match the list (or, while it is empty, give them to every member). */
+async function setApproverRights(db: Db, projectIds: string[], list: string[], people: Iterable<string> = []) {
+  const members = (await db.query<{ subject_id: string }>(
+    `select distinct subject_id from relation_tuples where relation = 'member' and resource_type = 'project' and resource_id = any($1::text[])`,
+    [projectIds])).map(r => r.subject_id);
+  const approvers = list.length ? list : [...new Set([...members, ...people])];
+  await db.query(
+    `delete from relation_tuples where relation = 'approver' and resource_type = 'project' and resource_id = any($1::text[]) and not (subject_id = any($2::text[]))`,
+    [projectIds, approvers]);
+  for (const pid of projectIds) {
+    for (const who of approvers) await grant(db, { subject: { type: 'user', id: who }, relation: 'approver', resource: { type: 'project', id: pid } });
+  }
+}
+
+export const cleanName = (s: string) => s.replace(/\s+/g, ' ').trim().slice(0, 40);
+
+async function applyApproverChange(db: Db, root: string, ev: ApproverEvent, projectIds: string[]): Promise<string | undefined> {
+  const name = cleanName(ev.name ?? '');
+  if (!name) return 'empty name';
+  const list = await approverList(db, root);
+  // While nobody is listed every member may set the list; after that, only listed approvers may change it.
+  if (list.length && !list.includes(ev.by)) return 'forbidden: not an approver';
+  if (ev.type === 'approver_added' ? list.includes(name) : !list.includes(name)) return undefined; // nothing to change
+  const insert = (who: string) => db.query('insert into shared_approver_changes (at, by, kind, who) values ($1, $2, $3, $4)', [ev.at, ev.by, 'approver_added', who]);
+  // Whoever names the first approver is listed too, so nobody locks themselves out by naming only someone else.
+  if (ev.type === 'approver_added' && !list.length && name !== ev.by) await insert(ev.by);
+  await db.query('insert into shared_approver_changes (at, by, kind, who) values ($1, $2, $3, $4)', [ev.at, ev.by, ev.type, name]);
+  await setApproverRights(db, projectIds, await approverList(db, root));
+  return undefined;
+}
+
+async function applyOne(db: Db, root: string, ev: LedgerEvent, projectIds: string[]): Promise<string | undefined> {
+  if ((ev as { v?: number }).v !== 1 || !KNOWN_TYPES.has(ev.type)) return NEWER + String((ev as { type?: unknown }).type);
   const at = new Date(ev.at);
   if (ev.type === 'proposed') {
-    if (!projectIds.has(ev.projectId)) return `unknown project ${ev.projectId}`;
+    if (!projectIds.includes(ev.projectId)) return `unknown project ${ev.projectId}`;
     await propose(db, { id: ev.decisionId, at, trusted: true, projectId: ev.projectId, topicKey: ev.topicKey, label: ev.label,
       value: ev.value, validFrom: ev.validFrom, sources: ev.sources ?? [], classification: ev.classification, by: { type: 'user', id: ev.by } });
   } else if (ev.type === 'approved') {
     await approve(db, ev.decisionId, ev.by, at);
   } else if (ev.type === 'rejected') {
     await reject(db, ev.decisionId, ev.by, ev.note, at);
+  } else if (isApproverEvent(ev)) {
+    return applyApproverChange(db, root, ev, projectIds);
   }
   return undefined;
 }
 
+/** For the approval page: who may approve now, and every accepted change (oldest first). */
+export async function teamState(db: Db, root: string) {
+  await ensureTables(db);
+  const changes = await db.query<{ at: string; by: string; kind: 'approver_added' | 'approver_removed'; who: string }>(
+    'select at, by, kind, who from shared_approver_changes order by seq');
+  return { approvers: await approverList(db, root), fromFile: readTeam(root).approvers ?? [], changes };
+}
+
 /**
  * Bring the local index up to date with the folder's event files. Called on every open in folder mode.
- * Returns how many events were applied and which ones were refused (e.g. an approval by someone not in team.json).
+ * Returns how many events were applied and which ones were refused (e.g. an approval by someone not on the approver list).
  */
 export async function syncSharedLedger(db: Db, root: string, projectIds: string[], localUser: string) {
   await ensureTables(db);
   const names = listEvents(root);
   const applied = (await db.query<{ name: string }>('select name from shared_events_applied order by name')).map(r => r.name);
   const isPrefix = applied.every((n, i) => names[i] === n);
-  if (!isPrefix) {
+  // Records skipped as "newer" that this version can now read: replay so they take effect.
+  const nowKnown = (await db.query<{ note: string }>(`select note from shared_events_applied where note like $1`, [NEWER + '%']))
+    .some(r => KNOWN_TYPES.has(r.note.slice(NEWER.length)));
+  if (!isPrefix || nowKnown) {
     // A late file landed before something already applied (or a file disappeared): replay from scratch.
-    await db.exec(`delete from decision_events; delete from decisions; delete from shared_events_applied;`);
+    await db.exec(`delete from decision_events; delete from decisions; delete from shared_events_applied; delete from shared_approver_changes;`);
     applied.length = 0;
   }
 
-  // Who may approve: team.json if present, otherwise every author (and the local user).
-  const team = readTeam(root);
   const pending = names.slice(applied.length);
   const events: [string, LedgerEvent][] = [];
   for (const n of pending) {
     try { events.push([n, JSON.parse(readFileSync(join(dirs(root).events, n), 'utf8'))]); } catch { /* half-synced file: try next time */ break; }
   }
   const people = new Set<string>([localUser, ...events.map(([, e]) => e.by)]);
-  const approvers = team.approvers ?? [...people];
-  if (team.approvers) {
-    // team.json decides: anyone not listed loses approver rights (they may have had them during the open trial).
-    await db.query(
-      `delete from relation_tuples where relation = 'approver' and resource_type = 'project' and resource_id = any($1::text[]) and not (subject_id = any($2::text[]))`,
-      [projectIds, team.approvers]);
-  }
   for (const pid of projectIds) {
     for (const who of people) await grant(db, { subject: { type: 'user', id: who }, relation: 'member', resource: { type: 'project', id: pid } });
-    for (const who of approvers) await grant(db, { subject: { type: 'user', id: who }, relation: 'approver', resource: { type: 'project', id: pid } });
   }
+  // Approver rights as of the last applied event; each approver change in the files updates them as it is replayed,
+  // so an approval is checked against the list at its own time.
+  await setApproverRights(db, projectIds, await approverList(db, root), people);
 
-  const known = new Set(projectIds);
   const refused: { name: string; reason: string }[] = [];
   for (const [n, ev] of events) {
     let note: string | undefined;
-    try { note = await applyOne(db, ev, known); } catch (e) { note = (e as Error).message; }
+    try { note = await applyOne(db, root, ev, projectIds); } catch (e) { note = (e as Error).message; }
     if (note) refused.push({ name: n, reason: note });
     await db.query('insert into shared_events_applied values ($1, $2, $3)', [n, !note, note ?? null]);
   }
   return { applied: events.length, refused };
 }
+
+/** How many records in the shared folder were written by a newer version and could not be read here. */
+export async function newerRecordCount(db: Db): Promise<number> {
+  await ensureTables(db);
+  const [{ n }] = await db.query<{ n: number }>(`select count(*)::int as n from shared_events_applied where note like $1`, [NEWER + '%']);
+  return n;
+}
+
+/** Shown on the approval page when newerRecordCount() > 0. */
+export const NEWER_VERSION_NOTICE = 'チームの誰かが新しい版を使っています。この版では読めないチームの記録があります。拡張機能を更新してください。';
+/** Added to what the AI receives about a project when newerRecordCount() > 0. */
+export const NEWER_VERSION_CAUTION = 'チームの誰かが新しい版を使っていて、この版では読めないチームの記録がある。利用者に、拡張機能を更新するよう一度伝えてほしい';
 
 /**
  * Folder mode writes: apply locally first (this checks permissions and state), then record the event file
@@ -118,7 +187,7 @@ export async function syncSharedLedger(db: Db, root: string, projectIds: string[
  */
 export async function recordAndApply(db: Db, root: string, ev: LedgerEvent, projectIds: string[]) {
   await ensureTables(db);
-  const note = await applyOne(db, ev, new Set(projectIds));
+  const note = await applyOne(db, root, ev, projectIds);
   if (note) throw new Error(note);
   const name = writeEvent(root, ev);
   await db.query('insert into shared_events_applied values ($1, true, null) on conflict do nothing', [name]);
