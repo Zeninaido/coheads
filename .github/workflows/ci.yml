@@ -56,9 +56,6 @@ jobs:
     name: L1 tests on PostgreSQL (pg_bigm)
     runs-on: ubuntu-latest
     timeout-minutes: 25
-    # The image recipe (docker/Dockerfile) has not been confirmed in CI yet. Until it is, a failure here
-    # does not block the PR; see the issue on server mode.
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
