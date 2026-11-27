@@ -29,7 +29,6 @@ Coheads（コヘッズ）は、チームの「いま有効な決定」（承認�
 | `docs/spec-changes.md` | 仕様を変えたときの記録（SC 番号）。M3 の ADR の下書き |
 | `docs/verification/` | L3（Claude Desktop での手の確認）の手順と記録 |
 | `docs/setup/` | 利用者向けの設定（チーム用 Claude プロジェクトの指示文） |
-| `docs/articles/` | 記事のチャットに渡した素材（記録として保管） |
 | `docs/development.md` | 開発の流れ（ブランチ、PR、確かめ方、版の出し方） |
 
 ## コマンド
@@ -46,6 +45,8 @@ bun run eval --suite smoke      # L2 を回す（Claude Code のログインが�
 
 ## 変更の流れ
 
+コミットのメッセージ、PR、Issue に、Claude Code のセッションの URL（`claude.ai/code/session_…`）を入れない。コミットの作者は「Hiroto Koshikoku」と GitHub の noreply のアドレスにする。
+
 1. main から作業ブランチを切る（`feat/…`、`fix/…`、`docs/…`、`eval/…`）。
 2. 変更する。仕様（AI に渡すもの、型、利用者に見える動き）を変えたら、`docs/spec-changes.md` に SC 番号で、何を・なぜ・何を見て変えたかを書く。型を変えたら `docs/spec/interface-v0.md` も直す。
 3. 確かめる。
@@ -60,5 +61,5 @@ bun run eval --suite smoke      # L2 を回す（Claude Code のログインが�
 
 ## 開発者の環境
 
-- Mac のクローンは `/Users/admin/project/coheads`。ダウンロードフォルダは使わない。
+- Mac のクローンは `~/project/coheads`。ダウンロードフォルダは使わない。
 - Claude Desktop の拡張機能は、承認ページとフックに 127.0.0.1:4319 を使う。L2 の評価は 4329 を使うので重ならない。
