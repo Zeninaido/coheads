@@ -77,8 +77,11 @@ jobs:
       - name: Check the extension
         shell: bash
         run: |
+          set +e
           node --version
-          node scripts/extension-check.mjs ext 2>&1; code=$?
+          node -e "console.log('node runs')"
+          node scripts/extension-check.mjs ext
+          code=$?
           echo "exit code: $code"
           exit $code
 
