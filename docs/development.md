@@ -15,7 +15,7 @@
 
 | 層 | 何を確かめるか | どこで | いつ |
 | --- | --- | --- | --- |
-| L1 自動テスト | コードの正しさ（台帳、権限、検索、食い違い、共有フォルダ、評価の仕組み） | `core/test/`。CI が PR ごとに回す | 毎回 |
+| L1 自動テスト | コードの正しさ（台帳、権限、検索、食い違い、共有フォルダ、評価の仕組み）。配布物の拡張機能を Windows の Node で起動し、資料の読み込み・保存場所・承認ページ・データの消去を確かめる（`scripts/extension-check.mjs`） | `core/test/`、CI（Linux と Windows）が PR ごとに回す | 毎回 |
 | L2 挙動の評価 | AI が場面ごとに正しく動くか。条件を固定し、同じ依頼を回数をそろえて回す | `eval/behavior/`。Claude Code の `claude -p` で回す | AI に渡す文言を変えたとき、版を出す前 |
 | L3 Desktop の確認 | Desktop のチャットで呼ばれるか、画面に何が出るか、承認ページ | [docs/verification/desktop-checklist.md](verification/desktop-checklist.md) | 版を出す前 |
 
@@ -33,7 +33,7 @@ L2 と L3 の結果は、どちらも記録に残す。L3 は1回ずつなので
 - マージはスカッシュ（1つの PR が1つのコミットになる）。
 - コミットのメッセージ、PR、Issue に、Claude Code のセッションの URL（`claude.ai/code/session_…`）を入れない。リポジトリを公開すると誰でも見られるため。
 - コミットの作者は「Hiroto Koshikoku <27053673+Zeninaido@users.noreply.github.com>」（GitHub の noreply）。個人のメールアドレスを入れない。
-- マージは Claude Code が行う。条件は、CI の2つのジョブ（`L1 tests and build`、`L1 tests on PostgreSQL (pg_bigm)`）がどちらも成功していること。GitHub の設定では必須にしていないので、この条件は運用で守る。
+- マージは Claude Code が行う。条件は、CI の3つのジョブ（`L1 tests and build`、`L1 tests on PostgreSQL (pg_bigm)`、`Extension on Windows`）がすべて成功していること。GitHub の設定では必須にしていないので、この条件は運用で守る。
 - 開発者の判断を待ってからマージするもの：仕様の選択が入る PR（SC 番号を新しく立てるもの、利用者に見える動きを変えるもの）、版を出す PR。PR の説明に「判断が要る点」を書き、開発者の返事を受けてからマージする。
 
 ## 版の番号
