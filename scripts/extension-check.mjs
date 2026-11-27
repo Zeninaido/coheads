@@ -7,22 +7,28 @@
 // Anywhere else it is a temporary folder, because step 6 deletes it.
 import { spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync } from 'node:fs';
+import { appendFileSync, cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync } from 'node:fs';
 import { homedir, tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+// CHECK_TRACE=<file> writes each step as it starts (for a run that stops without output).
+const trace = m => { if (process.env.CHECK_TRACE) appendFileSync(process.env.CHECK_TRACE, `${new Date().toISOString()} ${m}\n`); };
+process.on('exit', c => trace(`exit ${c}`));
 const ext = resolve(process.argv[2] ?? '');
 if (!existsSync(join(ext, 'server', 'mcp.js'))) { console.error(`usage: node scripts/extension-check.mjs <extracted .mcpb dir>`); process.exit(2); }
 const repo = join(dirname(fileURLToPath(import.meta.url)), '..');
+trace('start');
 const work = mkdtempSync(join(tmpdir(), 'coheads-check-'));
 const home = process.env.CI ? homedir() : join(work, 'home');
 const dataDir = join(home, '.coheads');
 const folder = join(work, '資料 フォルダ'); // a space and Japanese, as people name folders
 const project = join(folder, 'A社');
+trace(`folder ${folder}`);
 mkdirSync(project, { recursive: true });
 cpSync(join(repo, 'eval', 'behavior', 'fixtures', 'a-sha-docs', 'A社'), project, { recursive: true });
 for (const f of ['見積書_A社.docx', '提案書v1.pdf', 'スキャン.pdf']) cpSync(join(repo, 'core', 'test', 'fixtures', 'office', f), join(project, f));
+trace('copied');
 const port = process.env.CI ? 4319 : 4339; // off CI, stay clear of a Coheads running in Claude Desktop
 const page = `http://127.0.0.1:${port}`;
 
@@ -36,6 +42,7 @@ const server = spawn(process.execPath, [join(ext, 'server', 'mcp.js')], {
     SB_DESTINATION: 'claude-desktop', SB_APPROVAL_PORT: String(port) },
   stdio: ['pipe', 'pipe', 'pipe'],
 });
+trace('spawned');
 let stderr = '';
 server.stderr.on('data', d => { stderr += d; });
 let buf = '';
@@ -61,6 +68,7 @@ const tool = async (name, args) => (await rpc('tools/call', { name, arguments: a
 const form = (body) => fetch(page + body.path, { method: 'POST', body: new URLSearchParams(body.fields) }).then(r => r.text());
 
 try {
+  trace('initialize');
   // 1. Starts and answers.
   const init = await rpc('initialize', { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'extension-check', version: '0' } });
   server.stdin.write(JSON.stringify({ jsonrpc: '2.0', method: 'notifications/initialized' }) + '\n');

@@ -78,15 +78,10 @@ jobs:
         shell: bash
         run: |
           set +e
-          node --version
-          ls -la scripts
-          head -c 200 scripts/extension-check.mjs | od -c | head -5
-          node --input-type=module -e "console.log('esm runs')"; echo "esm: $?"
-          node scripts/extension-check.mjs; echo "no-arg: $?"
-          node scripts/version.ts --check; echo "other script: $?"
-          node scripts/extension-check.mjs ext > check.log 2>&1
+          CHECK_TRACE=trace.log node scripts/extension-check.mjs ext > check.log 2>&1
           code=$?
           cat check.log
+          echo "--- trace"; cat trace.log
           echo "exit code: $code"
           exit $code
 
