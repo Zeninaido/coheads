@@ -191,3 +191,12 @@ describe('approvers set on the approval page (recorded as events)', () => {
   });
 });
 }
+
+describe('which version each member runs (#1)', () => {
+  test('versions compare by number, not as text', async () => {
+    const { compareVersions } = await import('../src/sharedLedger');
+    expect(compareVersions('0.10.0', '0.9.9')).toBeGreaterThan(0);
+    expect(compareVersions('0.4.1', '0.4.1')).toBe(0);
+    expect(compareVersions('0.4.0', '0.4.1')).toBeLessThan(0);
+  });
+});

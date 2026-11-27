@@ -13,8 +13,8 @@ import { renderCopyText } from './renderers/copyText';
 import type { Classification } from './types';
 import { allowedProjectIds, can } from './permissions';
 import { formatValue } from './normalize';
-import { BASE_DATA_DIR, clearLocalData, FOLDER, folderProjectIds, newerVersionSeen, withStore } from './runtime';
-import { cleanName, NEWER_VERSION_CAUTION, NEWER_VERSION_NOTICE, recordAndApply, teamState } from './sharedLedger';
+import { BASE_DATA_DIR, clearLocalData, FOLDER, folderProjectIds, newerTeamMembers, updateCaution, updateNotice, VERSION, withStore } from './runtime';
+import { cleanName, memberVersions, recordAndApply, teamState } from './sharedLedger';
 
 export const APPROVAL_PORT = Number(process.env.SB_APPROVAL_PORT ?? 4319);
 export const APPROVAL_URL = `http://127.0.0.1:${APPROVAL_PORT}/`;
@@ -43,6 +43,7 @@ const TABS = [
   ['/team', '承認する人'],
   ['/copy', 'ほかの AI に貼る'],
   ['/log', 'AI に渡したもの'],
+  ['/update', '新しい版'],
   ['/data', 'やめ方とデータ'],
 ] as const;
 
@@ -68,7 +69,7 @@ ol li,ul.plain li{margin:4px 0}
 </style>
 <nav>${nav}</nav>
 <p class="m">あなた：${esc(user)}／${FOLDER ? `資料フォルダ：${esc(FOLDER)}` : 'デモ（架空の取引先 A社・B社）'}</p>
-${newerVersionSeen() ? `<p class="warn">${esc(NEWER_VERSION_NOTICE)}</p>` : ''}
+${updateNotice() ? `<p class="warn">${esc(updateNotice())}</p>` : ''}
 ${message ? `<p class="msg">${esc(message)}</p>` : ''}
 ${body}</html>`;
 }
@@ -259,6 +260,37 @@ async function logView(): Promise<string> {
 <p class="note">この記録は、このパソコンの中にだけあります。依頼の前の自動の確認で、関係する案件がなく何も渡さなかったものは、出していません。</p>`;
 }
 
+// ---- 新しい版 ----
+
+const RELEASES = 'https://github.com/Zeninaido/coheads/releases/latest';
+const LATEST_API = 'https://api.github.com/repos/Zeninaido/coheads/releases/latest';
+
+async function updateView(): Promise<string> {
+  const versions = FOLDER ? await withStore(db => memberVersions(db)) : [];
+  const newer = newerTeamMembers();
+  // Asking GitHub happens only when the button is pressed, from the browser; Coheads itself never calls out.
+  const script = `(function(){var mine='${esc(VERSION)}';function cmp(a,b){a=a.split('.').map(Number);b=b.split('.').map(Number);for(var i=0;i<3;i++){if((a[i]||0)!==(b[i]||0))return (a[i]||0)-(b[i]||0);}return 0;}
+var out=document.getElementById('latest');out.textContent='確かめています…';
+fetch('${LATEST_API}').then(function(r){if(!r.ok)throw new Error(r.status);return r.json();}).then(function(j){var v=String(j.tag_name||'').replace(/^v/,'');
+out.textContent=cmp(v,mine)>0?('新しい版 '+v+' があります。下の手順で更新してください。'):('いまの版（'+mine+'）が最新です。');}).catch(function(){out.textContent='確かめられませんでした。インターネットにつながっているかを確かめるか、下の配布のページを開いて、版の番号を見てください。';});})()`;
+  return `<h1>新しい版</h1>
+<p>この拡張機能の版：<b>${esc(VERSION)}</b></p>
+${newer.length ? `<p class="warn">${esc(newer.map(m => `${m.name}さん`).join('、'))}が、新しい版（${esc(newer[0].version)}）を使っています。下の手順で更新してください。</p>` : ''}
+<h2>新しい版があるか確かめる</h2>
+<p><button type="button" onclick="${esc(script)}">新しい版があるか確かめる</button> <span id="latest" class="note"></span></p>
+<p class="note">押したときだけ、配布しているサイト（GitHub）に、いちばん新しい版の番号を問い合わせます。チームの記録や資料は送りません。押さなければ、どこにも問い合わせません。</p>
+<h2>更新のしかた</h2>
+<ol>
+<li><a href="${RELEASES}" target="_blank" rel="noopener">配布のページ</a>から「coheads.mcpb」をダウンロードします。</li>
+<li>ダウンロードしたファイルをダブルクリックし、「インストール」を押します。うまくいかないときは、「マイプラグイン」でいまの Coheads をアンインストールしてから、入れ直します。</li>
+<li>このページを開き直し、上の行の「資料フォルダ」と「あなた」が前と同じか、このタブの版の番号が新しくなったかを見ます。</li>
+</ol>
+<p class="note">更新しても、チームの共有フォルダの記録、このパソコンのデータ、資料フォルダと名前の設定は残ります。</p>
+${FOLDER ? `<h2>チームのメンバーが使っている版</h2>
+${versions.length ? `<table><tr><th>メンバー</th><th>版</th><th>確かめた日時</th></tr>${versions.map(v => `<tr><td>${esc(v.name)}</td><td>${esc(v.version)}</td><td>${esc(when(v.at))}</td></tr>`).join('')}</table>` : '<p class="note">まだ記録はありません。</p>'}
+<p class="note">各メンバーの拡張機能が、使っている版を、チームの共有フォルダに1回ずつ記録します。0.4.0 までの版は記録しません。</p>` : ''}`;
+}
+
 // ---- やめ方とデータ ----
 
 function dataView(): string {
@@ -315,7 +347,8 @@ async function hookContext(user: string, prompt: string): Promise<string | undef
     });
     if (process.env.SB_HOOK_LOG) appendFileSync(process.env.SB_HOOK_LOG, `${new Date().toISOString()}\t${pack.project?.id ?? '-'}\n`);
     if (!pack.project) return undefined;
-    if (newerVersionSeen()) pack.cautions.push(NEWER_VERSION_CAUTION);
+    const update = updateCaution();
+    if (update) pack.cautions.push(update);
     return 'この依頼に関係する、このチームで承認された決定と資料です（チームの承認記録より）。\n\n' + renderCopyText(pack);
   });
 }
@@ -364,6 +397,7 @@ export function startApprovalPage(user: string, onError: (e: unknown) => void): 
         case '/team': return html(res, shell(user, '/team', await teamView(user)));
         case '/copy': return html(res, shell(user, '/copy', await copyView(user, url.searchParams.get('project') ?? undefined)));
         case '/log': return html(res, shell(user, '/log', await logView()));
+        case '/update': return html(res, shell(user, '/update', await updateView()));
         case '/data': return html(res, shell(user, '/data', dataView()));
         default: return html(res, shell(user, '/', await candidatesView(user)));
       }

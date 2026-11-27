@@ -6,5 +6,6 @@
 | --- | --- |
 | a-sha-docs | A社の資料5件。決定の記録なし。10万円の提案書と、承認者の名前つきで12万円に改定した承認記録が食い違う |
 | a-sha-docs-no-approver | a-sha-docs から、承認記録の「承認者：」の行を消したもの。決定を示す根拠が弱い食い違い |
+| a-sha-member-newer | a-sha-approved-130 に、佐藤さんが新しい版（9.9.9）を使っているという記録（`version_used`）を足したもの |
 | a-sha-newer-version | a-sha-approved-130 に、この版では読めない種類の記録（新しい版が書いたもの）を1件足したもの |
 | a-sha-approved-130 | a-sha-docs に、月額13万円（11/26から）を候補→承認した記録（`.coheads/events/`）を足したもの。資料のどこにも13万円はない |

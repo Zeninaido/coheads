@@ -23,11 +23,13 @@ export type LedgerEvent =
       value: DecisionValue; validFrom?: ISODate; sources: SourceRef[]; classification?: Classification }
   | { v: 1; type: 'approved'; at: string; by: string; decisionId: string }
   | { v: 1; type: 'rejected'; at: string; by: string; decisionId: string; note?: string }
-  | { v: 1; type: 'approver_added' | 'approver_removed'; at: string; by: string; name: string };
+  | { v: 1; type: 'approver_added' | 'approver_removed'; at: string; by: string; name: string }
+  // Which version each member runs, written once per member and version, so members on an older one are told (#1).
+  | { v: 1; type: 'version_used'; at: string; by: string; version: string };
 
 export type ApproverEvent = Extract<LedgerEvent, { name: string }>;
 const isApproverEvent = (ev: LedgerEvent): ev is ApproverEvent => ev.type === 'approver_added' || ev.type === 'approver_removed';
-const KNOWN_TYPES = new Set(['proposed', 'approved', 'rejected', 'approver_added', 'approver_removed']);
+const KNOWN_TYPES = new Set(['proposed', 'approved', 'rejected', 'approver_added', 'approver_removed', 'version_used']);
 // A record this version cannot read (a newer Coheads wrote it). It is skipped, and noted so people are told to update.
 const NEWER = 'newer version: ';
 
@@ -59,7 +61,8 @@ function listEvents(root: string): string[] {
 
 async function ensureTables(db: Db) {
   await db.exec(`create table if not exists shared_events_applied (name text primary key, ok boolean not null, note text);
-    create table if not exists shared_approver_changes (seq serial primary key, at text not null, by text not null, kind text not null, who text not null);`);
+    create table if not exists shared_approver_changes (seq serial primary key, at text not null, by text not null, kind text not null, who text not null);
+    create table if not exists shared_versions (name text primary key, version text not null, at text not null);`);
 }
 
 /** The approver list now: team.json (older form) as the start, then every accepted change in order. Empty = every member. */
@@ -116,6 +119,10 @@ async function applyOne(db: Db, root: string, ev: LedgerEvent, projectIds: strin
     await reject(db, ev.decisionId, ev.by, ev.note, at);
   } else if (isApproverEvent(ev)) {
     return applyApproverChange(db, root, ev, projectIds);
+  } else if (ev.type === 'version_used') {
+    if (!/^\d+\.\d+\.\d+/.test(String(ev.version ?? ''))) return 'bad version';
+    await db.query(`insert into shared_versions values ($1, $2, $3) on conflict (name) do update set version = excluded.version, at = excluded.at
+      where shared_versions.at <= excluded.at`, [ev.by, ev.version, ev.at]);
   }
   return undefined;
 }
@@ -142,7 +149,7 @@ export async function syncSharedLedger(db: Db, root: string, projectIds: string[
     .some(r => KNOWN_TYPES.has(r.note.slice(NEWER.length)));
   if (!isPrefix || nowKnown) {
     // A late file landed before something already applied (or a file disappeared): replay from scratch.
-    await db.exec(`delete from decision_events; delete from decisions; delete from shared_events_applied; delete from shared_approver_changes;`);
+    await db.exec(`delete from decision_events; delete from decisions; delete from shared_events_applied; delete from shared_approver_changes; delete from shared_versions;`);
     applied.length = 0;
   }
 
@@ -168,6 +175,38 @@ export async function syncSharedLedger(db: Db, root: string, projectIds: string[
   }
   return { applied: events.length, refused };
 }
+
+/** Compare "0.4.1" and "0.10.0" as versions: negative, zero or positive. */
+export function compareVersions(a: string, b: string): number {
+  const pa = a.split(/[.-]/).map(n => parseInt(n, 10) || 0), pb = b.split(/[.-]/).map(n => parseInt(n, 10) || 0);
+  for (let i = 0; i < 3; i++) if ((pa[i] ?? 0) !== (pb[i] ?? 0)) return (pa[i] ?? 0) - (pb[i] ?? 0);
+  return 0;
+}
+
+/** The version each member last said they run (from the shared folder), newest first. */
+export async function memberVersions(db: Db): Promise<{ name: string; version: string; at: string }[]> {
+  await ensureTables(db);
+  const rows = await db.query<{ name: string; version: string; at: string }>('select name, version, at from shared_versions');
+  return rows.sort((x, y) => compareVersions(y.version, x.version) || x.name.localeCompare(y.name, 'ja'));
+}
+
+/** Record this member's version in the shared folder, once per version (nothing is written when it is unchanged). */
+export async function recordVersionIfChanged(db: Db, root: string, user: string, version: string, projectIds: string[]) {
+  await ensureTables(db);
+  const [mine] = await db.query<{ version: string }>('select version from shared_versions where name = $1', [user]);
+  if (mine?.version === version) return false;
+  await recordAndApply(db, root, { v: 1, type: 'version_used', at: new Date().toISOString(), by: user, version }, projectIds);
+  return true;
+}
+
+/** Members who run a newer version than `mine`, for the notices below. */
+export async function newerMembers(db: Db, mine: string, self: string) {
+  return (await memberVersions(db)).filter(m => m.name !== self && compareVersions(m.version, mine) > 0);
+}
+export const newerMemberNotice = (m: { name: string; version: string }[], mine: string) =>
+  `${m.map(x => `${x.name}さん`).join('、')}が新しい版（${m[0].version}）を使っています。この拡張機能は ${mine} です。「新しい版」のタブの手順で更新してください。`;
+export const newerMemberCaution = (m: { name: string; version: string }[], mine: string) =>
+  `チームの${m.map(x => `${x.name}さん`).join('、')}が新しい版（${m[0].version}）を使っていて、この拡張機能は ${mine}。利用者に、拡張機能を更新するよう一度伝えてほしい（手順は承認ページの「新しい版」にある）`;
 
 /** How many records in the shared folder were written by a newer version and could not be read here. */
 export async function newerRecordCount(db: Db): Promise<number> {

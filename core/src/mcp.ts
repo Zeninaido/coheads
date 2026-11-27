@@ -10,9 +10,9 @@ import { excerpt, renderCopyText, renderDocumentText } from './renderers/copyTex
 import { allowedProjectIds, nameableProjects } from './permissions';
 import { appendFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
-import { DATA_DIR, DEMO_USER, FOLDER, folderProjectIds, LOCAL_USER, MODE, newerVersionSeen, withStore } from './runtime';
+import { DATA_DIR, DEMO_USER, FOLDER, folderProjectIds, LOCAL_USER, MODE, updateCaution, withStore } from './runtime';
 import { APPROVAL_URL, startApprovalPage } from './approvalPage';
-import { NEWER_VERSION_CAUTION, recordAndApply, teamState } from './sharedLedger';
+import { recordAndApply, teamState } from './sharedLedger';
 import { approvalGuide } from './renderers/approvalGuide';
 import { randomUUID } from 'node:crypto';
 
@@ -142,7 +142,8 @@ if (!PLAIN) server.registerTool(
           documents: pack.documents.map(d => d.source.uri), open: pack.open.map(o => o.topicKey),
         },
       });
-      if (pack.project && newerVersionSeen()) pack.cautions.push(NEWER_VERSION_CAUTION);
+      const update = updateCaution();
+      if (pack.project && update) pack.cautions.push(update);
       return renderCopyText(pack);
     });
     return { content: [{ type: 'text', text }] };

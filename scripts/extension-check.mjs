@@ -7,7 +7,7 @@
 // Anywhere else it is a temporary folder, because step 6 deletes it.
 import { spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { appendFileSync, copyFileSync, existsSync, mkdirSync, mkdtempSync, readdirSync } from 'node:fs';
+import { appendFileSync, copyFileSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync } from 'node:fs';
 import { homedir, tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -97,12 +97,16 @@ try {
   // 4. The approval page opens on this computer.
   const top = await (await fetch(page + '/')).text();
   check('approval page opens', top.includes('承認待ちの決定') && top.includes(folder), `${page}/`);
+  check('update tab shows this version', (await (await fetch(page + '/update')).text()).includes(`この拡張機能の版：<b>${init.serverInfo.version}</b>`));
   const token = /name="t" value="([0-9a-f]+)"/.exec(await (await fetch(page + '/team')).text())?.[1];
 
   // 5. A change on the page is written to the shared folder (one file per change).
   const added = await form({ path: '/team', fields: { t: token, do: 'add', name: '佐藤' } });
   const events = join(folder, '.coheads', 'events');
-  check('setting an approver writes to the shared folder', added.includes('承認する人に加えました') && existsSync(events) && readdirSync(events).length === 1);
+  const kinds = () => readdirSync(events).map(n => JSON.parse(readFileSync(join(events, n), 'utf8')).type);
+  const changes = () => kinds().filter(t => t !== 'version_used').length;
+  check('setting an approver writes to the shared folder', added.includes('承認する人に加えました') && existsSync(events) && changes() === 1);
+  check('records the version it runs in the shared folder, once', kinds().filter(t => t === 'version_used').length === 1);
   const proposed = await tool('propose_decision', { project: 'A社', label: '提案価格', amount_yen: 130000, period: 'monthly', tax: 'excluded' });
   check('after recording a candidate, says who may approve and where', proposed.includes('承認できる人：鈴木、佐藤') && proposed.includes('自分のパソコンで同じアドレスを開く'));
   check('what reached the AI is listed', (await (await fetch(page + '/log')).text()).includes('AI がチームの決定と資料を確かめた'));
@@ -111,7 +115,8 @@ try {
   const cleared = await form({ path: '/data/clear', fields: { t: token, ok: '1' } });
   check("deletes this computer's data while running", cleared.includes('このパソコンのデータを消しました') && !existsSync(dataDir),
     existsSync(dataDir) ? `still there: ${readdirSync(dataDir).join(', ')}` : '');
-  check('the shared folder is kept', existsSync(events) && readdirSync(events).length === 2);
+  check('the shared folder is kept', existsSync(events) && changes() === 2);
+  check('records the version it runs in the shared folder, once', kinds().filter(t => t === 'version_used').length === 1);
 
   // 7. After deleting, the next request rebuilds the index and the team's records come back.
   const again = await tool('get_context', { request: 'A社に送る見積のメールを書いて' });
