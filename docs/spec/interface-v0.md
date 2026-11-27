@@ -151,7 +151,7 @@ Context Control Planeの構成との対応：
 | CCP | 決定台帳 |
 | --- | --- |
 | DECISIONS | approvedの決定 |
-| OPEN | OpenItem、またはon_holdの決定 |
+| OPEN | OpenItem（SC-23 で、on_hold の決定は使わないことにした。確定していない記載は OpenItem に入れる） |
 | 受信箱 | candidateの決定 |
 | NOW | v0では扱わない（案件の「現在の焦点」として後で検討） |
 
