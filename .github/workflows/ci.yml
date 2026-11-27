@@ -52,6 +52,29 @@ jobs:
           path: dist/
           retention-days: 14
 
+  windows:
+    name: Extension on Windows
+    # The extension built above, run the way Claude Desktop runs it on Windows (#7): plain Node, the data folder
+    # in the user's home, a documents folder with Japanese names, Word and PDF, the approval page, deleting data.
+    needs: test
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/download-artifact@v4
+        with:
+          name: coheads-${{ github.sha }}
+          path: dist
+      - name: Unpack the extension
+        run: |
+          mkdir ext
+          tar -xf dist/coheads.mcpb -C ext
+      - name: Check the extension
+        run: node scripts/extension-check.mjs ext
+
   postgres:
     name: L1 tests on PostgreSQL (pg_bigm)
     runs-on: ubuntu-latest
