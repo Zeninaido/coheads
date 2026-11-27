@@ -7,7 +7,7 @@
 // Anywhere else it is a temporary folder, because step 6 deletes it.
 import { spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { appendFileSync, cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync } from 'node:fs';
+import { appendFileSync, copyFileSync, existsSync, mkdirSync, mkdtempSync, readdirSync } from 'node:fs';
 import { homedir, tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -26,8 +26,11 @@ const folder = join(work, '資料 フォルダ'); // a space and Japanese, as pe
 const project = join(folder, 'A社');
 trace(`folder ${folder}`);
 mkdirSync(project, { recursive: true });
-cpSync(join(repo, 'eval', 'behavior', 'fixtures', 'a-sha-docs', 'A社'), project, { recursive: true });
-for (const f of ['見積書_A社.docx', '提案書v1.pdf', 'スキャン.pdf']) cpSync(join(repo, 'core', 'test', 'fixtures', 'office', f), join(project, f));
+// copyFileSync, not cpSync: on Windows, Node 22's cpSync exits the process without a word on Japanese paths
+// (seen on GitHub Actions, Node 22.23.5). Coheads itself does not use cpSync.
+const docs = join(repo, 'eval', 'behavior', 'fixtures', 'a-sha-docs', 'A社');
+for (const f of readdirSync(docs)) copyFileSync(join(docs, f), join(project, f));
+for (const f of ['見積書_A社.docx', '提案書v1.pdf', 'スキャン.pdf']) copyFileSync(join(repo, 'core', 'test', 'fixtures', 'office', f), join(project, f));
 trace('copied');
 const port = process.env.CI ? 4319 : 4339; // off CI, stay clear of a Coheads running in Claude Desktop
 const page = `http://127.0.0.1:${port}`;
