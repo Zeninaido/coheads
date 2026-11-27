@@ -9,7 +9,7 @@
 | Claude Code（クラウドのセッション、または Mac） | 実装、テスト、L2 の評価、PR、CI が通った PR のマージ |
 | 開発者（越石） | 仕様として何を選ぶかの判断、L3 の確認、版を出すかの判断 |
 | Claude のプロジェクト「セカンドブレインUIプロジェクト」 | 方針の相談と、記事のチャットとの連携。仕様の正本はこのリポジトリに置き、プロジェクトには記事のチャットが読む写し（仕様変更の記録など）だけを置く |
-| Mac（`/Users/admin/project/coheads`） | `git pull` して、配布物を作り、Claude Desktop で L3 を確かめる |
+| Mac（`~/project/coheads`） | `git pull` して、配布物を作り、Claude Desktop で L3 を確かめる |
 
 ## 確かめ方の3つの層
 
@@ -31,6 +31,8 @@ L2 と L3 の結果は、どちらも記録に残す。L3 は1回ずつなので
   - 確かめていないこと
   - 仕様を変えたなら SC 番号
 - マージはスカッシュ（1つの PR が1つのコミットになる）。
+- コミットのメッセージ、PR、Issue に、Claude Code のセッションの URL（`claude.ai/code/session_…`）を入れない。リポジトリを公開すると誰でも見られるため。
+- コミットの作者は「Hiroto Koshikoku <27053673+Zeninaido@users.noreply.github.com>」（GitHub の noreply）。個人のメールアドレスを入れない。
 - マージは Claude Code が行う。条件は、CI の2つのジョブ（`L1 tests and build`、`L1 tests on PostgreSQL (pg_bigm)`）がどちらも成功していること。GitHub の設定では必須にしていないので、この条件は運用で守る。
 - 開発者の判断を待ってからマージするもの：仕様の選択が入る PR（SC 番号を新しく立てるもの、利用者に見える動きを変えるもの）、版を出す PR。PR の説明に「判断が要る点」を書き、開発者の返事を受けてからマージする。
 
