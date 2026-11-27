@@ -9,7 +9,8 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OUT="$ROOT/build/mcpb"
 cd "$ROOT"
 bun scripts/version.ts --check
-mcpb() { if command -v mcpb >/dev/null; then command mcpb "$@"; else npx -y @anthropic-ai/mcpb "$@"; fi; }
+# `type -P` looks only at the PATH, not at this function (`command -v` would find the function and never fall back).
+mcpb() { if type -P mcpb >/dev/null; then command mcpb "$@"; else npx -y @anthropic-ai/mcpb "$@"; fi; }
 
 rm -rf "${OUT:?}"
 mkdir -p "$OUT/server/assets" "$ROOT/dist"

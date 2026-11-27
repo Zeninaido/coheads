@@ -18,7 +18,7 @@ const post = async (path: string, form: Record<string, string>, t = token) =>
   fetch(base + path, { method: 'POST', body: new URLSearchParams({ t, ...form }) });
 const visible = (html: string) => html.replace(/<title>.*?<\/title>/s, '').replace(/<style>.*?<\/style>/s, '').replace(/<code>.*?<\/code>/gs, '')
   // Named only where people look for it themselves: the extension list and the plugin list.
-  .replace('「拡張機能」で Coheads を選んで', '').replace('プラグインの一覧から Coheads を外します', '');
+  .replace('「マイプラグイン」で Coheads を選び', '').replace('プラグインの一覧から Coheads を外します', '');
 
 beforeAll(async () => {
   mkdirSync(join(root, 'A社'));
