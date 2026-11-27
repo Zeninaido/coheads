@@ -69,11 +69,11 @@ jobs:
           name: coheads-${{ github.sha }}
           path: dist
       - name: Unpack the extension
-        shell: bash
+        shell: pwsh
         run: |
-          mkdir ext
-          tar -xf dist/coheads.mcpb -C ext
-          ls ext ext/server | head -20
+          Copy-Item dist/coheads.mcpb ext.zip
+          Expand-Archive ext.zip -DestinationPath ext
+          Get-ChildItem ext, ext/server | Select-Object -First 20 | Format-Table Name
       - name: Check the extension
         shell: bash
         run: |
