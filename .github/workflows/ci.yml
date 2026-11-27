@@ -76,14 +76,7 @@ jobs:
           Get-ChildItem ext, ext/server | Select-Object -First 20 | Format-Table Name
       - name: Check the extension
         shell: bash
-        run: |
-          set +e
-          CHECK_TRACE=trace.log node scripts/extension-check.mjs ext > check.log 2>&1
-          code=$?
-          cat check.log
-          echo "--- trace"; cat trace.log
-          echo "exit code: $code"
-          exit $code
+        run: CHECK_TRACE=trace.log node scripts/extension-check.mjs ext || { echo '--- steps reached'; cat trace.log; exit 1; }
 
   postgres:
     name: L1 tests on PostgreSQL (pg_bigm)

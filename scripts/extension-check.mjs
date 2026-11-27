@@ -27,7 +27,7 @@ const project = join(folder, 'A社');
 trace(`folder ${folder}`);
 mkdirSync(project, { recursive: true });
 // copyFileSync, not cpSync: on Windows, Node 22's cpSync exits the process without a word on Japanese paths
-// (seen on GitHub Actions, Node 22.23.5). Coheads itself does not use cpSync.
+// (seen on GitHub Actions, Node 22.23.5). The extension does not use cpSync (only the eval runner on the Mac does).
 const docs = join(repo, 'eval', 'behavior', 'fixtures', 'a-sha-docs', 'A社');
 for (const f of readdirSync(docs)) copyFileSync(join(docs, f), join(project, f));
 for (const f of ['見積書_A社.docx', '提案書v1.pdf', 'スキャン.pdf']) copyFileSync(join(repo, 'core', 'test', 'fixtures', 'office', f), join(project, f));

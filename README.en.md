@@ -21,7 +21,7 @@ Ask an AI to write a quote email and it may use a price from an old proposal or 
 - **The approval page also lets you** choose who may approve, copy a ready-to-paste summary for other AIs (ChatGPT and so on), see what was recently given to the AI, and find how to stop using it and delete its data from this computer.
 - **Try it as a team.** When everyone chooses the same shared folder, a decision one person approves reaches everyone's AI.
 
-Tested on Mac. Not yet tested on Windows.
+Tested on Mac. Windows testing is in progress.
 
 ### Known issue
 
