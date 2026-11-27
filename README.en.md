@@ -23,6 +23,10 @@ Ask an AI to write a quote email and it may use a price from an old proposal or 
 
 Tested on Mac. Not yet tested on Windows.
 
+### Known issue
+
+- When documents disagree on an amount and none of them names who approved it, the AI should ask which amount to use before writing. In our tests it did not ask in 1 of 6 runs and drafted with the newest document's amount (it did say the amount was not settled and asked you to check). We are working on it ([#29](../../issues/29)).
+
 ## What comes next
 
 1. **Make sure it works on Windows** ([#7](../../issues/7)). Most company computers run Windows.
