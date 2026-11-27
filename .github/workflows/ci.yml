@@ -69,11 +69,18 @@ jobs:
           name: coheads-${{ github.sha }}
           path: dist
       - name: Unpack the extension
+        shell: bash
         run: |
           mkdir ext
           tar -xf dist/coheads.mcpb -C ext
+          ls ext ext/server | head -20
       - name: Check the extension
-        run: node scripts/extension-check.mjs ext
+        shell: bash
+        run: |
+          node --version
+          node scripts/extension-check.mjs ext 2>&1; code=$?
+          echo "exit code: $code"
+          exit $code
 
   postgres:
     name: L1 tests on PostgreSQL (pg_bigm)
