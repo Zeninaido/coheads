@@ -80,8 +80,9 @@ jobs:
           set +e
           node --version
           node -e "console.log('node runs')"
-          node scripts/extension-check.mjs ext
+          node --trace-exit --trace-uncaught scripts/extension-check.mjs ext > check.log 2>&1
           code=$?
+          cat check.log
           echo "exit code: $code"
           exit $code
 
