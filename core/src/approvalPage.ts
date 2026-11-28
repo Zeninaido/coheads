@@ -6,9 +6,11 @@ import { randomBytes } from 'node:crypto';
 import { appendFileSync } from 'node:fs';
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import { logAccess } from './audit';
-import { buildContextPack } from './contextPack';
+import { buildContextPack, docCandidatesFor } from './contextPack';
+import type { DocCandidate } from './conflicts';
+import { randomUUID } from 'node:crypto';
 import type { Db } from './db';
-import { approve, reject } from './ledger';
+import { approve, propose, reject } from './ledger';
 import { renderCopyText } from './renderers/copyText';
 import type { Classification } from './types';
 import { allowedProjectIds, can } from './permissions';
@@ -95,9 +97,77 @@ async function candidatesView(user: string): Promise<string> {
     return `<li><div class="t">${esc(r.project)}：${esc(r.label)} → <b>${esc(shownValue(parse(r.value)))}</b></div>
       <div class="m">適用開始：${esc(r.valid_from ?? '承認した日')}／候補を出した人：${esc(by)}${src ? `／根拠：${esc(src)}` : ''}</div>${buttons}</li>`;
   }).join('');
+  const fromDocs = await docCandidatesView(user);
   return `<h1>承認待ちの決定</h1>
-${items ? `<ul class="cards">${items}</ul>` : '<p>承認待ちの決定はありません。</p>'}
+${items ? `<ul class="cards">${items}</ul>` : fromDocs ? '' : '<p>承認待ちの決定はありません。</p>'}
+${fromDocs}
 <p class="note">承認すると、その決定が「現行」になり、同じ論点の古い決定は失効します。${FOLDER ? 'チームの共有フォルダにも記録され、同期されると、ほかのメンバーの AI にも届きます。' : ''}</p>`;
+}
+
+// Candidates read from documents (S20): a newer document says another amount was decided. Nothing is recorded until
+// an approver acts here; until then the AI keeps to the current amount.
+const UNIT = { monthly: '月額', yearly: '年額', one_time: '一括' } as const;
+const TAX = { excluded: '税別', included: '税込' } as const;
+const draftValue = (c: DocCandidate) => `${c.draft.period ? UNIT[c.draft.period] : ''}${c.draft.amount.toLocaleString('ja-JP')}円${c.draft.tax ? `（${TAX[c.draft.tax]}）` : ''}`;
+
+async function allDocCandidates(user: string): Promise<{ c: DocCandidate; project: string; mine: boolean }[]> {
+  return withStore(async db => {
+    const out = [];
+    const ids = await allowedProjectIds(db, user);
+    const names = new Map((await db.query<{ id: string; name: string }>('select id, name from projects where id = any($1::text[])', [ids])).map(p => [p.id, p.name]));
+    for (const id of ids) {
+      for (const c of await docCandidatesFor(db, id, COPY_DESTINATION.ceiling)) out.push({ c, project: names.get(id) ?? id, mine: await can(db, user, 'approver', id) });
+    }
+    return out;
+  });
+}
+
+async function docCandidatesView(user: string): Promise<string> {
+  const rows = await allDocCandidates(user);
+  if (!rows.length) return '';
+  const items = rows.map(({ c, project, mine }) => {
+    const buttons = mine
+      ? `<form method="post" action="/doc-decide">${tokenField}<input type="hidden" name="project" value="${esc(c.projectId)}"><input type="hidden" name="doc" value="${esc(c.draft.sourceDocId)}"><input type="hidden" name="amount" value="${c.draft.amount}">
+         <button name="do" value="approve">承認する</button> <button name="do" value="reject" class="sub">候補にしない</button></form>`
+      : '<p class="note">承認できるのは、「承認する人」に載っている人だけです。</p>';
+    return `<li><div class="t">${esc(project)}：${esc(c.current.label)}</div>
+<table><tr><th>現行</th><th>資料の金額</th><th>有効日</th></tr>
+<tr><td>${esc(shownValue(c.current.value))}</td><td><b>${esc(draftValue(c))}</b></td><td>${esc(c.draft.validFrom ?? '資料に記載なし（承認した日から）')}</td></tr></table>
+<div class="m">出典：${esc(c.docDate)}の「${esc(c.draft.sourceTitle)}」<br>該当行：${esc(c.line)}${c.draft.approverInDoc ? `<br>資料に書かれた承認者：${esc(c.draft.approverInDoc)}（資料の記載です。チームの承認にはなりません）` : ''}</div>${buttons}</li>`;
+  }).join('');
+  return `<h2>資料から見つかった候補</h2>
+<p class="note">いまの決定と違う金額が、「決定」と承認者の名前つきで、新しい資料に書かれています。承認するまで、AI はいまの決定で書きます。</p>
+<ul class="cards">${items}</ul>`;
+}
+
+async function decideFromDoc(user: string, projectId: string, docId: string, amount: number, action: string): Promise<string> {
+  const found = (await allDocCandidates(user)).find(r => r.c.projectId === projectId && r.c.draft.sourceDocId === docId && r.c.draft.amount === amount);
+  if (!found) return 'その候補は見つかりませんでした。資料が変わったか、すでに承認または却下されています。';
+  if (!found.mine) return friendly(new Error('not an approver'));
+  const { c } = found;
+  return withStore(async db => {
+    const [doc] = await db.query<{ updated_at: string }>('select updated_at from documents where id = $1', [docId.replace(/^doc:/, '')]);
+    const fields = {
+      projectId, topicKey: c.topicKey, label: c.current.label,
+      value: { type: 'money' as const, amount: c.draft.amount, currency: 'JPY' as const, period: c.draft.period, tax: c.draft.tax },
+      validFrom: c.draft.validFrom,
+      sources: [{ adapterId: 'folder', uri: docId, title: c.draft.sourceTitle, updatedAt: doc ? new Date(doc.updated_at).toISOString() : undefined }],
+    };
+    const at = new Date();
+    const id = randomUUID();
+    if (FOLDER) {
+      await recordAndApply(db, FOLDER, { v: 1, type: 'proposed', at: at.toISOString(), by: user, decisionId: id, ...fields } as any, folderProjectIds());
+      const ev = { v: 1 as const, type: action === 'approve' ? 'approved' as const : 'rejected' as const, at: new Date(at.getTime() + 1).toISOString(), by: user, decisionId: id };
+      await recordAndApply(db, FOLDER, ev, folderProjectIds());
+    } else {
+      await propose(db, { ...fields, id, by: { type: 'user', id: user }, at } as any);
+      if (action === 'approve') await approve(db, id, user, new Date(at.getTime() + 1));
+      else await reject(db, id, user, undefined, new Date(at.getTime() + 1));
+    }
+    return action === 'approve'
+      ? `「${c.current.label}」を${draftValue(c)}で承認しました。`
+      : `資料の${draftValue(c)}は、候補にしないと記録しました。この資料からは、もう出ません。`;
+  });
 }
 
 async function decide(user: string, id: string, action: string): Promise<string> {
@@ -380,6 +450,10 @@ export function startApprovalPage(user: string, onError: (e: unknown) => void): 
         const act = async (fn: () => Promise<string>) => { try { return await fn(); } catch (e) { return friendly(e); } };
         if (url.pathname === '/decide') {
           const msg = await act(() => decide(user, f.get('id') ?? '', f.get('do') ?? ''));
+          return html(res, shell(user, '/', await candidatesView(user), msg));
+        }
+        if (url.pathname === '/doc-decide') {
+          const msg = await act(() => decideFromDoc(user, f.get('project') ?? '', f.get('doc') ?? '', Number(f.get('amount')), f.get('do') ?? ''));
           return html(res, shell(user, '/', await candidatesView(user), msg));
         }
         if (url.pathname === '/team') {

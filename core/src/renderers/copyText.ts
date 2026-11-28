@@ -42,7 +42,10 @@ export function renderCopyText(p: ContextPack): string {
   }
   if (p.open.length) {
     lines.push('', '■ 未確定');
-    for (const o of p.open) lines.push(`- ${o.label}${o.note ? '：' + o.note : ''}`);
+    for (const o of p.open) {
+      if (o.source) lines.push(`- 資料の記載：${o.source.date}の「${o.source.title}」（ID ${o.source.docId}）：${o.source.line.slice(0, 80)}`);
+      else lines.push(`- ${o.label}${o.note ? '：' + o.note : ''}`);
+    }
   }
   if (p.documents.length) {
     lines.push('', '■ 関連資料');
@@ -65,6 +68,16 @@ export function renderCopyText(p: ContextPack): string {
       lines.push(`→ 候補の下書き（記録するかは利用者に聞く）：案件 ${d.projectId}／${d.label}／${d.period ? unit[d.period] : ''}${d.amount.toLocaleString('ja-JP')}円${d.tax ? `（${tax[d.tax]}）` : ''}` +
         `${d.validFrom ? `／適用日 ${d.validFrom}` : ''}／根拠 ${d.sourceDocId}${d.approverInDoc ? `（資料には「承認者：${d.approverInDoc}」とある。記録するとチームの承認者が承認ページで確定する）` : ''}`);
     }
+  }
+  for (const c of p.docCandidates ?? []) {
+    const d = c.draft;
+    const unit = { monthly: '月額', yearly: '年額', one_time: '一括' } as const;
+    const tax = { excluded: '税別', included: '税込' } as const;
+    lines.push('', `■ 現行と違う金額の資料（チームでは未承認）：${c.current.label}`);
+    lines.push(`- 現行：${formatValue(c.current.value)}（承認済み）`);
+    lines.push(`- 資料：${d.period ? unit[d.period] : ''}${d.amount.toLocaleString('ja-JP')}円${d.tax ? `（${tax[d.tax]}）` : ''}`);
+    lines.push(`- 有効日：${d.validFrom ?? '資料に記載なし（承認した日から）'}`);
+    lines.push(`- 出典：${c.docDate}の「${d.sourceTitle}」（ID ${d.sourceDocId}）：${c.line.slice(0, 80)}${d.approverInDoc ? `／資料には「承認者：${d.approverInDoc}」とある` : ''}`);
   }
   if (p.cautions.length) {
     lines.push('', '■ 注意');

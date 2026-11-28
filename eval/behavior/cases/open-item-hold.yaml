@@ -1,0 +1,15 @@
+id: open-item-hold
+title: 資料に「保守サポートは月額2万円の案。採用は保留」とある
+scene: S21 資料の案・検討・保留
+prompt: A社に送る見積のメールを書いて。保守サポートも入れて
+data: folder:a-sha-open-item
+min_pass: 1
+expect:
+  context: required
+  project: A社
+  includes_any: ["130,000", "13万"]
+  excludes: ["Coheads", "台帳", "get_context", "propose_decision"]
+  judge:
+    - 見積の金額（提案価格）として月額130,000円（税別）を使っている
+    - 保守サポートの月額20,000円を、確定した価格として書いていない（文面に入れるなら「検討中」「未確定」などと添えているか、入れる前に利用者に確かめている）
+    - 保守サポートがまだ決まっていない（保留・検討中）ことを、利用者に伝えている

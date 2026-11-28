@@ -1,8 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import type { Db } from './db';
 import { aliasMap } from './adapters/folder';
-import { describeMention, findMoneyConflict, type MoneyConflict } from './conflicts';
-import { yen } from './normalize';
+import { describeMention, findDocCandidates, findMoneyConflict, findOpenLines, type DocCandidate, type MoneyConflict } from './conflicts';
 import { decisionsFor } from './ledger';
 import { formatValue, moneyAmounts, normalize, yen } from './normalize';
 import { allowedProjectIds } from './permissions';
@@ -132,8 +131,11 @@ export async function buildContextPack(db: Db, adapters: SourceAdapter[], req: C
     if (currentByTopic.has(d.topicKey) && !previous.some(p => p.topicKey === d.topicKey)) previous.push(d);
   }
 
-  const open = await db.query<OpenItem>(
+  const recorded = await db.query<OpenItem>(
     'select project_id as "projectId", topic_key as "topicKey", label, note from open_items where project_id = $1', [project.id]);
+  // Lines in the documents that say something is not settled (案・検討・保留…), with where they are (SC-23, S21).
+  const fromDocs = await findOpenLines(db, project.id, ceiling, aliases, all);
+  const open = [...recorded, ...fromDocs];
 
   // 4. Documents from every adapter, already scoped to this project and ceiling inside the query.
   const limit = req.docLimit ?? 3;
@@ -158,12 +160,16 @@ export async function buildContextPack(db: Db, adapters: SourceAdapter[], req: C
   // A money candidate is already waiting for approval: point to it instead of offering another draft.
   const pendingMoney = candidates.find(c => c.value.type === 'money');
   const conflict = found && pendingMoney ? { ...found, draft: undefined } : found;
+  // 5b. An approved amount exists, and a newer document says another amount was decided (SC-23, S20).
+  const docCandidates = hasCurrentMoney ? await findDocCandidates(db, project.id, ceiling, aliases, all, current) : [];
 
   // 6. Cautions and the citation line the AI is asked to print.
   const cautions = [
     ...(conflict ? [conflictCaution(conflict, pendingMoney)] : []),
     ...(matchedBy === 'search' ? [`依頼に案件名がなかったため、資料の内容から「${project.name}」の話と判断しました。違う場合は案件名を添えて頼み直してください`] : []),
-    ...open.map(o => `${o.label}は未確定。確定事項として書かない`),
+    ...docCandidates.map(docCandidateCaution),
+    ...recorded.map(o => `${o.label}は未確定。確定事項として書かない`),
+    ...(fromDocs.length ? ['「■ 未確定」の資料の記載は、まだ決まっていないこと。確定事項として書かず、書くときは「未確定」と添える'] : []),
     ...candidates.map(c => `${c.label}の${fmtValue(c)}は未承認の候補。現行として扱わない`),
     ...scheduled.map(s => `${s.label}は${s.validFrom}から${fmtValue(s)}に変わる（承認済み・適用前）`),
   ];
@@ -183,9 +189,17 @@ export async function buildContextPack(db: Db, adapters: SourceAdapter[], req: C
     unavailableSources: unavailable,
     cautions,
     conflicts: conflict ? [conflict] : [],
+    docCandidates,
     citation,
     truncated,
   };
+}
+
+/** Candidates read from a project's documents (S20), for the approval page. */
+export async function docCandidatesFor(db: Db, projectId: string, ceiling: Classification, asOf = localDate(new Date().toISOString())!): Promise<DocCandidate[]> {
+  const { all, current } = await decisionState(db, projectId, asOf, ceiling);
+  if (!current.some(d => d.value.type === 'money')) return [];
+  return findDocCandidates(db, projectId, ceiling, await aliasMap(db), all, current);
 }
 
 /** Decisions of one project as of a business date, split the way the pack and the annotations need them. */
@@ -254,6 +268,15 @@ function conflictCaution(c: MoneyConflict, pending?: Decision): string {
     : `金額が決まったら、承認待ちの候補として記録するかを利用者に聞く${c.draft ? '（上の「候補の下書き」をそのまま使える）' : ''}。`;
   return head + act + record;
 }
+
+/** A newer document says another amount was decided: keep to the current one until the team approves (S20). */
+function docCandidateCaution(c: DocCandidate): string {
+  const doc = `${c.docDate}の「${c.draft.sourceTitle}」`;
+  return `${c.current.label}の現行は${fmtValue(c.current)}（チームで承認済み）。それより新しい${doc}に${yen(c.draft.amount)}と` +
+    `承認者（${c.draft.approverInDoc ?? '記載あり'}）が書かれているが、チームではまだ承認されていない。承認されるまでは現行の${yen(amountOf(c.current))}で書く。` +
+    `資料に新しい金額があることと、承認する人が承認ページで確かめられることを、利用者に伝える。`;
+}
+const amountOf = (d: Decision) => (d.value.type === 'money' ? d.value.amount : 0);
 
 export function annotate(normBody: string, expired: Decision[], candidates: Decision[], currentByTopic: Map<string, Decision>): Annotation[] {
   const amounts = new Set(moneyAmounts(normBody));
