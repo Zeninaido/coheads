@@ -49,7 +49,11 @@ describe('実証シナリオ', () => {
     expect(pack.project?.id).toBe('a-sha');
     expect(pack.current.map(d => (d.value as any).amount)).toEqual([120000]);
     expect(pack.previous.map(d => (d.value as any).amount)).toEqual([100000]);
-    expect(pack.open.map(o => o.label)).toEqual(['納期']);
+    expect(pack.open.map(o => o.label)).toEqual(['納期', '資料の記載', '資料の記載']);
+    // Read from the documents (S21): lines that say it is not settled, newest first, with the document. The 11/18 memo's
+    // "12万円に上げたい意見" is not among them: a later document says the price was decided.
+    expect(pack.open.filter(o => o.source).map(o => o.source!.docId)).toEqual(['doc:2026-11-25-a-hearing', 'doc:2026-10-20-a-kickoff']);
+    expect(pack.open.some(o => o.note?.includes('12万円'))).toBe(false);
     expect(pack.citation).toContain('11/24');
     const proposal = pack.documents.find(d => d.source.uri === 'doc:2026-10-28-a-proposal-v1');
     expect(proposal?.annotations[0]?.message).toContain('100,000円は現行ではない。現行は月額120,000円（税別）、11/24から適用（11/24承認）');

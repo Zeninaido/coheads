@@ -72,6 +72,8 @@ export interface OpenItem {
   topicKey: string;
   label: string;
   note?: string;
+  /** Read from a document (SC-23): the line that says it is not settled, and where it is. */
+  source?: { docId: string; title: string; date: string; line: string };
 }
 
 export interface DecisionView {
@@ -111,6 +113,8 @@ export interface ContextPack {
   cautions: string[];
   /** Amounts that disagree across documents while the ledger has no approved amount (see conflicts.ts). */
   conflicts?: import('./conflicts').MoneyConflict[];
+  /** Newer documents that state a decided amount different from the current one; not recorded until approved (SC-23). */
+  docCandidates?: import('./conflicts').DocCandidate[];
   citation: string;
   ceiling: Classification;
   truncated: boolean;

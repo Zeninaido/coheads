@@ -127,8 +127,9 @@ interface DecisionEvent {
 interface OpenItem {
   projectId: string;
   topicKey: string;
-  label: string;   // 例 "納期"
+  label: string;   // 例 "納期"。資料から読んだものは "資料の記載"
   note?: string;   // 例 "顧客の稼働日程が未確定"
+  source?: { docId: string; title: string; date: ISODate; line: string }; // 資料から読んだとき：該当行と出典（SC-27）
 }
 ```
 
@@ -173,6 +174,7 @@ interface ContextPack {
   unavailableSources: { adapterId: string; reason: string }[];
   cautions: string[];        // 例 "納期を確定事項として書かない"
   conflicts?: MoneyConflict[]; // 資料どうしの金額の食い違い（試し実装で追加、SC-17）
+  docCandidates?: DocCandidate[]; // 現行と違う金額を「決定」と承認者つきで書いた新しい資料（SC-27）。承認されるまで現行にならない
   citation: string;          // 出典の表示。データとして渡し、AIへの指示文にはしない（試し実装で変更）
   ceiling: Classification;   // この出力先に渡した上限
   truncated: boolean;        // 分量の上限で省いたものがあるか
@@ -234,6 +236,23 @@ interface CandidateDraft {
   approverInDoc?: string;  // 資料に書かれた承認者。記録の参考で、承認ではない
 }
 ```
+
+資料から読む候補と未確定の事項（SC-23 の方針、SC-27 で実装）：
+
+```ts
+interface DocCandidate {
+  projectId: string;
+  topicKey: string;
+  current: Decision;      // 置き換える相手（承認済みの現行の金額）
+  draft: CandidateDraft;  // 資料の金額・単位・税・有効日・出典・資料に書かれた承認者
+  line: string;           // 「決定」と書かれた該当行
+  docDate: ISODate;
+}
+```
+
+- 候補にするのは、次がすべてそろう行だけ。確定の言葉（承認・決定・確定・改定する・合意）があり、「案」「検討」「保留」などの未決の言葉がない。同じ資料に「承認者：」がある。資料の日付が、現行の金額が承認された日以降。金額が、その論点でチームが記録したことのない値。論点ごとに最も新しい1件。
+- 資料から読んだ候補は、台帳に書かない（共有フォルダにも書かない）。承認ページで承認する人が「承認する」か「候補にしない」を押したときに、`proposed`（根拠はその資料）と `approved`／`rejected` を続けて書く。その資料のその金額は、以後は出ない。
+- 未確定の事項：資料の行のうち「保留」「検討」「未定」「確定できない」「（案）」などを含むもの。見出しの行は除く。金額の話の行は、決着したら除く（同じ日以降に「決定」の記載がある、その金額をチームが記録した、その論点がその日以降に承認された）。新しいものから3件まで。
 
 規則：
 

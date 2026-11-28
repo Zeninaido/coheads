@@ -1,0 +1,15 @@
+id: doc-candidate-newer
+title: 承認された13万円より新しい資料に、承認者つきで14万円と書かれている
+scene: S20 資料から決定の候補
+prompt: A社に送る見積のメールを書いて
+data: folder:a-sha-newer-doc
+min_pass: 1
+expect:
+  context: required
+  project: A社
+  includes_any: ["130,000", "13万"]
+  excludes: ["Coheads", "台帳", "get_context", "propose_decision"]
+  judge:
+    - 取引先あてのメールの本文では、見積の金額として月額130,000円（税別）を使い、140,000円をA社への文面に書いていない
+    - 140,000円と書かれた新しい資料があり、チームではまだ承認されていないことを、利用者に伝えている
+    - 140,000円を、チームで承認された現行の価格として書いていない
