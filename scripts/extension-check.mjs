@@ -103,13 +103,15 @@ try {
   const added = await form({ path: '/team', fields: { t: token, do: 'add', name: '佐藤' } });
   const events = join(folder, '.coheads', 'events');
   check('setting an approver writes to the shared folder', added.includes('承認する人に加えました') && existsSync(events) && readdirSync(events).length === 1);
+  const proposed = await tool('propose_decision', { project: 'A社', label: '提案価格', amount_yen: 130000, period: 'monthly', tax: 'excluded' });
+  check('after recording a candidate, says who may approve and where', proposed.includes('承認できる人：鈴木、佐藤') && proposed.includes('自分のパソコンで同じアドレスを開く'));
   check('what reached the AI is listed', (await (await fetch(page + '/log')).text()).includes('AI がチームの決定と資料を確かめた'));
 
   // 6. Deleting this computer's data works while the extension keeps running (files must not stay locked).
   const cleared = await form({ path: '/data/clear', fields: { t: token, ok: '1' } });
   check("deletes this computer's data while running", cleared.includes('このパソコンのデータを消しました') && !existsSync(dataDir),
     existsSync(dataDir) ? `still there: ${readdirSync(dataDir).join(', ')}` : '');
-  check('the shared folder is kept', existsSync(events) && readdirSync(events).length === 1);
+  check('the shared folder is kept', existsSync(events) && readdirSync(events).length === 2);
 
   // 7. After deleting, the next request rebuilds the index and the team's records come back.
   const again = await tool('get_context', { request: 'A社に送る見積のメールを書いて' });

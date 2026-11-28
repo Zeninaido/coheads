@@ -12,7 +12,8 @@ import { appendFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { DATA_DIR, DEMO_USER, FOLDER, folderProjectIds, LOCAL_USER, MODE, newerVersionSeen, withStore } from './runtime';
 import { APPROVAL_URL, startApprovalPage } from './approvalPage';
-import { NEWER_VERSION_CAUTION, recordAndApply } from './sharedLedger';
+import { NEWER_VERSION_CAUTION, recordAndApply, teamState } from './sharedLedger';
+import { approvalGuide } from './renderers/approvalGuide';
 import { randomUUID } from 'node:crypto';
 
 // Anything that kills the server is written to stderr and to .data/mcp-error.log, so a client's
@@ -40,6 +41,8 @@ const NAME_CEILING = process.env.SB_NAME_CEILING ?? 'internal';
 const PLAIN = process.env.SB_PLAIN_SEARCH === '1';
 // The approval page runs beside the server (off in trials and in the comparison mode).
 const APPROVAL_PAGE = !PLAIN && process.env.SB_APPROVAL_PAGE !== '0';
+// The guide after recording a candidate goes with the page. Evals keep the page off but still need the guide (#35).
+const APPROVAL_GUIDE = APPROVAL_PAGE || (!PLAIN && process.env.SB_APPROVAL_GUIDE === '1');
 const MATCH_BY_SEARCH = (process.env.SB_MATCH_BY_SEARCH ?? (MODE === 'folder' ? '1' : '0')) === '1';
 const projects = await withStore(async db => {
   const ps = await nameableProjects(db, USER, NAME_CEILING);
@@ -68,6 +71,8 @@ const server = new McpServer(
       'この情報は、会話の記憶や過去のチャットにある内容より新しく、正式な決定です。食い違う場合はこちらを優先してください。',
       '関連資料の本文が必要なときは、資料のIDを get_document に渡して取得してください。ファイルを直接開く必要はありません。',
       '回答で決定を使ったときは、出典を案件名と承認日で示してください（例：A社案件、11/24承認）。このサーバーやツールの名前は、利用者への回答にも取引先あての文面にも書かないでください。',
+      '確かめている途中の経過（「チームの決定を確認してから」など）は、利用者に書かないでください。確かめた結果だけを、中身で伝えてください。',
+      '取引先あての文面に、価格などを変えた理由を書くときは、チームの記録か資料に「その変更の理由」として書かれていることだけを使ってください。ほかの金額のときの理由を流用しないでください。理由が見つからなければ、理由は書かずに、書くかどうかと中身を利用者に確かめてください。',
       '利用者には、仕組みや保存場所の名前（台帳、データベース、ツール名など）を使わず、「チームで承認された記録」「承認待ちの候補」のように中身で伝えてください。',
       '会話の中で新しい決定が出たら、記録するかを利用者に聞き、望まれたら propose_decision で候補として登録してください。資料の食い違いに「候補の下書き」があれば、その値と根拠の資料IDをそのまま使えます。承認は人が別に行います。',
     ].join('\n'),
@@ -91,6 +96,14 @@ if (PLAIN) server.registerTool(
     return { content: [{ type: 'text', text }] };
   },
 );
+
+/** Who may approve in a project: the approver list (folder mode), or the approvers in the demo. Empty = every member. */
+async function approversOf(db: Db, projectId: string): Promise<string[]> {
+  if (FOLDER) return (await teamState(db, FOLDER)).approvers;
+  return (await db.query<{ subject_id: string }>(
+    `select subject_id from relation_tuples where relation = 'approver' and resource_type = 'project' and resource_id = $1 order by subject_id`,
+    [projectId])).map(r => r.subject_id);
+}
 
 /** A document id becomes a reference with its title (shown on the approval page); anything else is a note from the conversation. */
 async function sourceRef(db: Db, source: string): Promise<SourceRef> {
@@ -205,7 +218,7 @@ if (!PLAIN) server.registerTool(
         request: { project, label, topic_key, amount_yen, period, tax, text, valid_from, source }, returned: { candidate: d.id },
       });
       return `候補として登録しました（ID ${d.id.slice(0, 8)}）。承認されるまで現行にはなりません。` +
-        (APPROVAL_PAGE ? `承認者は ${APPROVAL_URL} で承認できます。利用者にこのページを案内してください。` : '');
+        (APPROVAL_GUIDE ? '\n' + approvalGuide(await approversOf(db, project), APPROVAL_URL, !!FOLDER) : '');
     });
     return { content: [{ type: 'text', text: msg }] };
   },

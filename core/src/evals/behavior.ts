@@ -117,7 +117,8 @@ async function prepare(c: Case, k: Condition): Promise<Setup> {
   writeFileSync(accessLog, '');
   writeFileSync(hookLog, '');
   // Data: a fresh store per run; folder fixtures are copied, so events written during the run stay in the copy.
-  const env: Record<string, string> = { SB_DATA_DIR: join(work, 'store'), SB_APPROVAL_PAGE: '0', SB_DESTINATION: 'claude-code-eval', SB_ACCESS_LOG: accessLog };
+  // No approval page in evals, but the AI gets the same guide after recording a candidate as in Desktop (address on the eval port).
+  const env: Record<string, string> = { SB_DATA_DIR: join(work, 'store'), SB_APPROVAL_PAGE: '0', SB_APPROVAL_GUIDE: '1', SB_APPROVAL_PORT: EVAL_HOOK_PORT, SB_DESTINATION: 'claude-code-eval', SB_ACCESS_LOG: accessLog };
   let docsDir = join(ROOT, 'corpus');
   if (c.data.startsWith('folder:')) {
     const folder = join(work, 'team-folder');
