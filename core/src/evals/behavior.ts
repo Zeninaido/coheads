@@ -55,6 +55,8 @@ export interface Condition {
   plugin?: 'none' | 'skill' | 'full';
   /** realistic: mail/drive/Notion/past-chat tools returning stale data. empty: they return nothing. none: absent. */
   decoys?: 'realistic' | 'empty' | 'none';
+  /** true: the instructions a team puts in its Claude project (docs/setup/project-instructions.md), as in the L3 on Desktop. */
+  project_instructions?: boolean;
 }
 export interface Suite { id: string; title?: string; runs: number; cases: string[] | '*'; conditions: Condition[]; min_pass?: number }
 
@@ -97,6 +99,7 @@ export function validate(cases: Case[], suites: Suite[]): string[] {
       if (k.plugin && !['none', 'skill', 'full'].includes(k.plugin)) errs.push(`${at}/${k.id}: plugin must be none, skill or full`);
       if (k.decoys && !['realistic', 'empty', 'none'].includes(k.decoys)) errs.push(`${at}/${k.id}: decoys must be realistic, empty or none`);
       if (k.plugin && k.plugin !== 'none' && k.server && k.server !== 'coheads') errs.push(`${at}/${k.id}: the plugin needs server coheads`);
+      if (k.project_instructions !== undefined && typeof k.project_instructions !== 'boolean') errs.push(`${at}/${k.id}: project_instructions must be true or false`);
     }
   }
   return errs;
@@ -149,6 +152,7 @@ async function prepare(c: Case, k: Condition): Promise<Setup> {
     cpSync(docsDir, join(work, '社内資料'), { recursive: true });
     setup.appendPrompt = '社内の資料は、作業フォルダの「社内資料」フォルダに案件ごとに入っています。';
   }
+  if (k.project_instructions) setup.appendPrompt = [setup.appendPrompt, projectInstructions()].filter(Boolean).join('\n\n');
 
   const plugin = k.plugin ?? 'none';
   if (plugin !== 'none') {
@@ -172,6 +176,14 @@ async function prepare(c: Case, k: Condition): Promise<Setup> {
   return setup;
 }
 
+/** The text block of docs/setup/project-instructions.md: what a team pastes into its Claude project. */
+export function projectInstructions(): string {
+  const md = readFileSync(join(ROOT, 'docs', 'setup', 'project-instructions.md'), 'utf8');
+  const m = /```text\n([\s\S]*?)```/.exec(md);
+  if (!m) throw new Error('docs/setup/project-instructions.md: no ```text block');
+  return m[1].trim();
+}
+
 interface Call { name: string; input: unknown }
 function streamEvents(stdout: string): any[] {
   return stdout.split('\n').filter(Boolean).flatMap(l => { try { return [JSON.parse(l)]; } catch { return []; } });
@@ -185,6 +197,19 @@ function toolCalls(events: any[]): Call[] {
   };
   events.forEach(walk);
   return out.filter(c => c.name !== 'ToolSearch');
+}
+
+/** Everything the AI wrote to the user, in order: the lines before and between tool calls, and the final answer.
+ *  The `result` event holds only the final answer, so a line like "first I check the team's decisions" was never judged (#41). */
+export function assistantText(events: any[]): string {
+  const parts: string[] = [];
+  for (const e of events) {
+    if (e?.type !== 'assistant' || !Array.isArray(e.message?.content)) continue;
+    for (const c of e.message.content) if (c?.type === 'text' && typeof c.text === 'string' && c.text.trim()) parts.push(c.text.trim());
+  }
+  const final = [...events].reverse().find(e => e?.type === 'result')?.result;
+  if (typeof final === 'string' && final.trim() && !parts.some(p => p === final.trim())) parts.push(final.trim());
+  return parts.join('\n\n');
 }
 
 export interface RunResult {
@@ -225,7 +250,7 @@ async function runOnce(c: Case, k: Condition, n: number, timeoutMs: number): Pro
     const events = streamEvents(proc.stdout.toString());
     const result = [...events].reverse().find(e => e.type === 'result');
     const init = events.find(e => e.type === 'system' && e.subtype === 'init');
-    const answer: string = typeof result?.result === 'string' ? result.result : '';
+    const answer = assistantText(events);
     const calls = toolCalls(events);
     const access = readFileSync(s.accessLog, 'utf8').split('\n').filter(Boolean).map(l => JSON.parse(l));
     const contextProjects = access.filter(a => a.tool === 'get_context').map(a => a.projectId ?? null);

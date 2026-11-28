@@ -3,7 +3,7 @@ import { describe, expect, test } from 'bun:test';
 import { existsSync, mkdtempSync, readdirSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { loadCases, loadSuite, validate } from '../src/evals/behavior';
+import { assistantText, loadCases, loadSuite, validate } from '../src/evals/behavior';
 
 describe('behavior evals', () => {
   test('every case and suite file is valid', () => {
@@ -33,4 +33,28 @@ describe('behavior evals', () => {
     expect(byCase['approved-overrides-docs'].answer).toContain('130,000');
     expect(existsSync(join(out, json.replace('.json', '.md')))).toBe(true);
   }, 300_000);
+});
+
+describe('what the judge reads (#41)', () => {
+  test('includes the lines the AI wrote before a tool call, not only the final answer', () => {
+    const events = [
+      { type: 'assistant', message: { content: [{ type: 'text', text: 'チームの現行の決定事項を踏まえて作ります。' }, { type: 'tool_use', name: 'get_context', input: {} }] } },
+      { type: 'user', message: { content: [{ type: 'tool_result', content: '…' }] } },
+      { type: 'assistant', message: { content: [{ type: 'text', text: 'アジェンダです。' }] } },
+      { type: 'result', result: 'アジェンダです。' },
+    ];
+    expect(assistantText(events)).toBe('チームの現行の決定事項を踏まえて作ります。\n\nアジェンダです。');
+  });
+  test('falls back to the final answer when no text blocks were streamed', () => {
+    expect(assistantText([{ type: 'result', result: '答え' }])).toBe('答え');
+  });
+});
+
+describe('project instructions condition', () => {
+  test('reads the text a team pastes into its Claude project', async () => {
+    const { projectInstructions } = await import('../src/evals/behavior');
+    const t = projectInstructions();
+    expect(t.startsWith('このプロジェクトは、チームの取引先・案件の仕事をする場所です。')).toBe(true);
+    expect(t.includes('```')).toBe(false);
+  });
 });

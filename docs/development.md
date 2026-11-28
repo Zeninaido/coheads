@@ -46,7 +46,7 @@ L2 と L3 の結果は、どちらも記録に残す。L3 は1回ずつなので
 
 1. `CHANGELOG.md` の「未リリース」を、版の番号と日付の節にする。
 2. `bun run version:set X.Y.Z`
-3. L2 の core スイートを回す：`bun run eval --suite core`。結果（`eval/behavior/results/X.Y.Z/`）をコミットする。不合格のケースがあれば、直すか、理由を CHANGELOG に書いて出すかを判断する。
+3. L2 の core スイートと project スイート（チーム用のプロジェクトの指示あり。L3 と同じ条件）を回す：`bun run eval --suite core`、`bun run eval --suite project`。結果（`eval/behavior/results/X.Y.Z/`）をコミットする。不合格のケースがあれば、直すか、理由を CHANGELOG に書いて出すかを判断する。
 4. Mac で配布物を作り、L3 を確かめる。記録を `docs/verification/desktop-checklist.md` に足す。
 5. PR をマージしたら、タグ `vX.Y.Z` を付けて push する。GitHub Actions がリリースを作り、`coheads.mcpb` と `coheads-plugin.zip` を添付する。
 
