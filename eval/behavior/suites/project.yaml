@@ -1,0 +1,11 @@
+id: project
+title: チーム用の Claude プロジェクトの中（L3 と同じ、プロジェクトの指示あり）
+runs: 5
+min_pass: 1
+cases: [agenda-no-project, general-question, quote-by-contact, approved-overrides-docs, conflict-ungrounded, propose-candidate]
+conditions:
+  - id: project
+    description: 拡張機能＋プロジェクトの指示（docs/setup/project-instructions.md）。おとりあり
+    plugin: none
+    decoys: realistic
+    project_instructions: true

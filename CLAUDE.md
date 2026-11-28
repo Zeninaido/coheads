@@ -51,13 +51,13 @@ bun run eval --suite smoke      # L2 を回す（Claude Code のログインが�
 2. 変更する。仕様（AI に渡すもの、型、利用者に見える動き）を変えたら、`docs/spec-changes.md` に SC 番号で、何を・なぜ・何を見て変えたかを書く。型を変えたら `docs/spec/interface-v0.md` も直す。
 3. 確かめる。
    - L1（`bun run test`）は毎回。CI でも PR ごとに回る。
-   - AI に渡す文言（サーバーやツールの説明、スキル、注意の文、Context Pack の文面）を変えたら、L2 の関係するケースを回し、結果を `eval/behavior/results/` に残して PR に書く。
+   - AI に渡す文言（サーバーやツールの説明、スキル、注意の文、Context Pack の文面、チーム用のプロジェクトの指示）を変えたら、L2 の関係するケースを回し、結果を `eval/behavior/results/` に残して PR に書く。
    - 新しい動きには、L1 のテストと、必要なら L2 のケースを足す。
 4. `CHANGELOG.md` の「未リリース」に一行足す。
 5. PR を出す。説明には、変えたこと、確かめたこと（L1／L2 の結果）、確かめていないことを書く。
 6. CI の3つのジョブ（Windows を含む）が成功したら、スカッシュでマージする。仕様の選択が入る PR と版を出す PR は、開発者の返事を受けてからマージする。
 
-版を出すときは `docs/development.md` の「版を出す」に従う（L2 の core スイート、L3 の確認、タグ、リリース）。
+版を出すときは `docs/development.md` の「版を出す」に従う（L2 の core・project スイート、L3 の確認、タグ、リリース）。
 
 ## 開発者の環境
 
