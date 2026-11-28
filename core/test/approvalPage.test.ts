@@ -16,9 +16,14 @@ let token = '';
 const get = async (path: string) => (await fetch(base + path)).text();
 const post = async (path: string, form: Record<string, string>, t = token) =>
   fetch(base + path, { method: 'POST', body: new URLSearchParams({ t, ...form }) });
+// Records in the shared folder other than "which version I run" (written once when Coheads first opens the folder).
+const changes = () => existsSync(join(root, '.coheads', 'events'))
+  ? readdirSync(join(root, '.coheads', 'events')).filter(n => n.endsWith('.json'))
+      .filter(n => JSON.parse(readFileSync(join(root, '.coheads', 'events', n), 'utf8')).type !== 'version_used')
+  : [];
 const visible = (html: string) => html.replace(/<title>.*?<\/title>/s, '').replace(/<style>.*?<\/style>/s, '').replace(/<code>.*?<\/code>/gs, '')
   // Named only where people look for it themselves: the extension list and the plugin list.
-  .replace('「マイプラグイン」で Coheads を選び', '').replace('プラグインの一覧から Coheads を外します', '');
+  .replace('「マイプラグイン」で Coheads を選び', '').replace('プラグインの一覧から Coheads を外します', '').replace('いまの Coheads をアンインストール', '');
 
 beforeAll(async () => {
   mkdirSync(join(root, 'A社'));
@@ -34,7 +39,7 @@ afterAll(() => { child?.kill(); });
 
 describe('approval page', () => {
   test('every tab opens, and none names the product, the ledger or a tool (except the browser tab title and the extension list)', async () => {
-    for (const path of ['/', '/team', '/copy', '/log', '/data', '/copy?project=A社']) {
+    for (const path of ['/', '/team', '/copy', '/log', '/update', '/data', '/copy?project=A社']) {
       const html = await get(path);
       expect(html).toContain('<nav>');
       expect(visible(html)).not.toMatch(/Coheads|台帳|get_context|propose_decision|team\.json|hook/);
@@ -45,7 +50,7 @@ describe('approval page', () => {
     const r = await fetch(base + '/log', { headers: { host: `evil.example:${port}` } });
     expect(r.status).toBe(403);
     expect((await post('/team', { do: 'add', name: '佐藤' }, 'wrong')).status).toBe(403);
-    expect(existsSync(join(root, '.coheads', 'events'))).toBe(false);
+    expect(changes()).toHaveLength(0);
   });
 
   test('who may approve is chosen from names in the team records, and the person naming the first one is listed too', async () => {
@@ -54,7 +59,7 @@ describe('approval page', () => {
     expect(first).toContain('<option value="鈴木">鈴木（あなた）</option>'); // picked from the records, not typed
     expect(first).toContain('なりすましを防ぐ仕組みではありません');
     expect(await (await post('/team', { do: 'add', name: '佐藤' })).text()).toContain('佐藤 さんと、あなた（鈴木）を承認する人に加えました');
-    const files = readdirSync(join(root, '.coheads', 'events'));
+    const files = changes();
     expect(files).toHaveLength(1);
     expect(JSON.parse(readFileSync(join(root, '.coheads', 'events', files[0]), 'utf8'))).toMatchObject({ type: 'approver_added', by: '鈴木', name: '佐藤' });
     // 鈴木 steps down: no remove buttons any more, and a change is refused with a plain explanation.
@@ -63,7 +68,7 @@ describe('approval page', () => {
     expect(page).toContain('佐藤さんに頼んでください');
     expect(page).not.toContain('value="remove"');
     expect(await (await post('/team', { do: 'add', name: '鈴木' })).text()).toContain('「承認する人」に載っている人だけです');
-    expect(readdirSync(join(root, '.coheads', 'events'))).toHaveLength(2);
+    expect(changes()).toHaveLength(2);
   });
 
   test('a project can be copied as paste-ready text for other AIs, headed 「チームの決定」', async () => {
@@ -84,6 +89,17 @@ describe('approval page', () => {
     expect(html).not.toContain('server_start');
   });
 
+  test('the extension writes the version it runs to the shared folder once, and the update tab shows it', async () => {
+    const dir = join(root, '.coheads', 'events');
+    const mine = readdirSync(dir).map(n => JSON.parse(readFileSync(join(dir, n), 'utf8'))).filter(e => e.type === 'version_used');
+    expect(mine).toHaveLength(1);
+    expect(mine[0]).toMatchObject({ by: '鈴木', version: require('../package.json').version });
+    const page = await get('/update');
+    expect(page).toContain(`この拡張機能の版：<b>${require('../package.json').version}</b>`);
+    expect(page).toContain('押したときだけ、配布しているサイト（GitHub）に');
+    expect(page).toContain('<td>鈴木</td>');
+  });
+
   test('a record from a newer version shows an update notice on the page and in what reaches the AI', async () => {
     const file = join(root, '.coheads', 'events', '2026-11-20T00-00-00-000Z-future01.json');
     writeFileSync(file, JSON.stringify({ v: 1, type: 'expired', at: '2026-11-20T00:00:00.000Z', by: '佐藤', decisionId: 'x' }));
@@ -94,6 +110,15 @@ describe('approval page', () => {
     expect(await get('/team')).toContain('佐藤さんに頼んでください');
   }, 30000);
 
+  test('a member on a newer version is named in the notice on the page and in what reaches the AI', async () => {
+    writeFileSync(join(root, '.coheads', 'events', '2099-01-01T00-00-00-000Z-ver00001.json'),
+      JSON.stringify({ v: 1, type: 'version_used', at: '2099-01-01T00:00:00.000Z', by: '佐藤', version: '9.9.9' }));
+    expect(await get('/')).toContain('佐藤さんが新しい版（9.9.9）を使っています');
+    const hook = await (await fetch(base + '/hook/prompt', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ prompt: 'A社に送る見積のメールを書いて' }) })).json() as any;
+    expect(hook.hookSpecificOutput.additionalContext).toContain('チームの佐藤さんは新しい版（9.9.9）を使っている');
+    expect(await get('/update')).toContain('佐藤さんが、新しい版（9.9.9）を使っています');
+  }, 30000);
+
   test("deleting this computer's data needs the check mark, removes the data folder and leaves the shared folder", async () => {
     expect(existsSync(data)).toBe(true);
     expect(await get('/data')).toContain('AI に渡したものの記録も消えます');
@@ -101,7 +126,7 @@ describe('approval page', () => {
     expect(existsSync(data)).toBe(true);
     expect(await (await post('/data/clear', { ok: '1' })).text()).toContain('このパソコンのデータを消しました');
     expect(existsSync(data)).toBe(false);
-    expect(readdirSync(join(root, '.coheads', 'events'))).toHaveLength(3);
+    expect(changes()).toHaveLength(3);
     // Coheads keeps working: the next visit rebuilds the index, and the approver list comes back from the shared folder.
     const page = await get('/team');
     expect(page).toContain('佐藤');

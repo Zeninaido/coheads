@@ -10,7 +10,10 @@ import { basename, join, parse, resolve } from 'node:path';
 import { connect, migrate, type Db } from './db';
 import { FolderAdapter } from './adapters/folder';
 import { grant } from './permissions';
-import { newerRecordCount, syncSharedLedger } from './sharedLedger';
+import pkg from '../package.json' with { type: 'json' };
+import { NEWER_VERSION_CAUTION, NEWER_VERSION_NOTICE, newerMemberCaution, newerMemberNotice, newerMembers, newerRecordCount, recordVersionIfChanged, syncSharedLedger } from './sharedLedger';
+
+export const VERSION: string = pkg.version;
 import { moduleDir } from './paths';
 import { CORPUS_DIR, seedBase, seedPriceHistory } from './seed';
 
@@ -41,10 +44,17 @@ function projectFolders(root: string): string[] {
   return readdirSync(root).filter(n => !n.startsWith('.') && !n.startsWith('_') && statSync(join(root, n)).isDirectory());
 }
 
-// Records in the shared folder that a newer version wrote and this one cannot read (updated on every open).
+// Records in the shared folder that a newer version wrote and this one cannot read, and members who said they run a
+// newer version (both updated on every open).
 let newerRecords = 0;
+let newer: { name: string; version: string }[] = [];
 /** True when someone on the team uses a newer version: the approval page and the AI are told to update. */
-export const newerVersionSeen = () => newerRecords > 0;
+export const newerVersionSeen = () => newerRecords > 0 || newer.length > 0;
+/** Members known to run a newer version (empty when only unreadable records tell us). */
+export const newerTeamMembers = () => newer;
+/** The update notice for the approval page, and the line added to what the AI receives about a project. */
+export const updateNotice = () => (newer.length ? newerMemberNotice(newer, VERSION) : newerRecords > 0 ? NEWER_VERSION_NOTICE : undefined);
+export const updateCaution = () => (newer.length ? newerMemberCaution(newer, VERSION) : newerRecords > 0 ? NEWER_VERSION_CAUTION : undefined);
 
 async function syncFolderProjects(db: Db, root: string): Promise<FolderAdapter> {
   await db.query(`insert into workspaces values ('local', 'personal', $1) on conflict do nothing`, [basename(root)]);
@@ -58,7 +68,9 @@ async function syncFolderProjects(db: Db, root: string): Promise<FolderAdapter> 
   const folder = new FolderAdapter(db, root, map, { prefixIds: true });
   await folder.ingest();
   await syncSharedLedger(db, root, Object.values(map), LOCAL_USER);
+  await recordVersionIfChanged(db, root, LOCAL_USER, VERSION, Object.values(map));
   newerRecords = await newerRecordCount(db);
+  newer = await newerMembers(db, VERSION, LOCAL_USER);
   return folder;
 }
 

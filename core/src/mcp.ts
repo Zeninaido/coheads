@@ -10,9 +10,9 @@ import { excerpt, renderCopyText, renderDocumentText } from './renderers/copyTex
 import { allowedProjectIds, nameableProjects } from './permissions';
 import { appendFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
-import { DATA_DIR, DEMO_USER, FOLDER, folderProjectIds, LOCAL_USER, MODE, newerVersionSeen, withStore } from './runtime';
+import { DATA_DIR, DEMO_USER, FOLDER, folderProjectIds, LOCAL_USER, MODE, updateCaution, withStore } from './runtime';
 import { APPROVAL_URL, startApprovalPage } from './approvalPage';
-import { NEWER_VERSION_CAUTION, recordAndApply, teamState } from './sharedLedger';
+import { recordAndApply, teamState } from './sharedLedger';
 import { approvalGuide } from './renderers/approvalGuide';
 import { randomUUID } from 'node:crypto';
 
@@ -72,6 +72,7 @@ const server = new McpServer(
       '関連資料の本文が必要なときは、資料のIDを get_document に渡して取得してください。ファイルを直接開く必要はありません。',
       '回答で決定を使ったときは、出典を案件名と承認日で示してください（例：A社案件、11/24承認）。このサーバーやツールの名前は、利用者への回答にも取引先あての文面にも書かないでください。',
       '確かめている途中の経過（「チームの決定を確認してから」など）は、利用者に書かないでください。確かめた結果だけを、中身で伝えてください。',
+      '返された「注意」に、チームの誰かが新しい版を使っているというお知らせがあれば、拡張機能を新しい版に更新するよう、利用者に一度だけ伝えてください（手順は承認ページの「新しい版」のタブ）。取引先あての文面には入れないでください。',
       '取引先あての文面に、価格などを変えた理由を書くときは、チームの記録か資料に「その変更の理由」として書かれていることだけを使ってください。ほかの金額のときの理由を流用しないでください。理由が見つからなければ、理由は書かずに、書くかどうかと中身を利用者に確かめてください。',
       '利用者には、仕組みや保存場所の名前（台帳、データベース、ツール名など）を使わず、「チームで承認された記録」「承認待ちの候補」のように中身で伝えてください。',
       '会話の中で新しい決定が出たら、記録するかを利用者に聞き、望まれたら propose_decision で候補として登録してください。資料の食い違いに「候補の下書き」があれば、その値と根拠の資料IDをそのまま使えます。承認は人が別に行います。',
@@ -142,7 +143,8 @@ if (!PLAIN) server.registerTool(
           documents: pack.documents.map(d => d.source.uri), open: pack.open.map(o => o.topicKey),
         },
       });
-      if (pack.project && newerVersionSeen()) pack.cautions.push(NEWER_VERSION_CAUTION);
+      const update = updateCaution();
+      if (pack.project && update) pack.cautions.push(update);
       return renderCopyText(pack);
     });
     return { content: [{ type: 'text', text }] };
