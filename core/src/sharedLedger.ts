@@ -206,7 +206,9 @@ export async function newerMembers(db: Db, mine: string, self: string) {
 export const newerMemberNotice = (m: { name: string; version: string }[], mine: string) =>
   `${m.map(x => `${x.name}さん`).join('、')}が新しい版（${m[0].version}）を使っています。この拡張機能は ${mine} です。「新しい版」のタブの手順で更新してください。`;
 export const newerMemberCaution = (m: { name: string; version: string }[], mine: string) =>
-  `チームの${m.map(x => `${x.name}さん`).join('、')}が新しい版（${m[0].version}）を使っていて、この拡張機能は ${mine}。利用者に、拡張機能を更新するよう一度伝えてほしい（手順は承認ページの「新しい版」にある）`;
+  // A fact, not a request: a request inside tool output reads like injected text, and the AI rightly ignores it.
+  // What to do with it is in the server instructions (a trusted channel).
+  `新しい版のお知らせ：この拡張機能は ${mine}。チームの${m.map(x => `${x.name}さん`).join('、')}は新しい版（${m[0].version}）を使っている（チームの共有フォルダの記録より）。更新の手順は、承認ページの「新しい版」のタブにある`;
 
 /** How many records in the shared folder were written by a newer version and could not be read here. */
 export async function newerRecordCount(db: Db): Promise<number> {

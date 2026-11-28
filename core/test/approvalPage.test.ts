@@ -115,7 +115,7 @@ describe('approval page', () => {
       JSON.stringify({ v: 1, type: 'version_used', at: '2099-01-01T00:00:00.000Z', by: '佐藤', version: '9.9.9' }));
     expect(await get('/')).toContain('佐藤さんが新しい版（9.9.9）を使っています');
     const hook = await (await fetch(base + '/hook/prompt', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ prompt: 'A社に送る見積のメールを書いて' }) })).json() as any;
-    expect(hook.hookSpecificOutput.additionalContext).toContain('佐藤さんが新しい版（9.9.9）');
+    expect(hook.hookSpecificOutput.additionalContext).toContain('チームの佐藤さんは新しい版（9.9.9）を使っている');
     expect(await get('/update')).toContain('佐藤さんが、新しい版（9.9.9）を使っています');
   }, 30000);
 
